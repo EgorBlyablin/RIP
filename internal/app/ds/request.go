@@ -11,7 +11,7 @@ type SelectedTurbine struct {
 	CalculatedGeneration float32
 }
 
-type Request struct {
+type GenerationCalculationRequest struct {
 	ID                   uint
 	Period               string
 	SelectedTurbines     []SelectedTurbine

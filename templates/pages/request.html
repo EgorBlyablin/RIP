@@ -6,7 +6,7 @@
         {{template "header" .}}
         <main>
             <h1>Создание заявки</h1>
-            <form class="request">
+            <form class="generation-calculation-request">
                 <div class="properties">
                     <div class="period-selector__wrapper">
                         <p>Период расчета:</p>
@@ -16,14 +16,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="request-details">
+                <div class="generation-calculation-request-details">
                     <ol class="turbines-list">
                         {{range $i, $selectedTurbineParams := .request.SelectedTurbines}}
                         {{with $selectedTurbineParams}}
                         <li>
                             <img src="{{.Turbine.ImageSrc}}" alt="Изображение {{.Turbine.Title}}">
                             <div class="details">
-                                <h2>{{$i}}. {{.Turbine.Title}}</h2>
+                                <h2>{{add $i 1}}. {{.Turbine.Title}}</h2>
                                 <ul class="parameters">
                                     <li>
                                         Мощность: <b>{{.Turbine.Power}} кВт</b>
@@ -69,7 +69,7 @@
                                 {{with $selectedTurbineParams}}
                                 <li>
                                     <p>
-                                        {{$i}}. {{.Turbine.Title}}: <b>{{.CalculatedGeneration}} МВт</b>
+                                        {{add $i 1}}. {{.Turbine.Title}}: <b>{{.CalculatedGeneration}} МВт</b>
                                     </p>
                                 </li>
                                 {{end}}

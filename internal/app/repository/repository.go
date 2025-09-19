@@ -8,10 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Repository struct{}
+type TurbinesRepository struct{}
 
-func NewRepository() (*Repository, error) {
-	return &Repository{}, nil
+func NewRepository() (*TurbinesRepository, error) {
+	return &TurbinesRepository{}, nil
 }
 
 func MinioImagePath(image string) string {
@@ -28,7 +28,7 @@ var Terrains = map[string]ds.TerrainType{
 	"megapolis":   {Translation: "Мегаполис"},
 }
 
-func (r *Repository) GetTurbines() ([]ds.Turbine, error) {
+func (r *TurbinesRepository) GetTurbines() ([]ds.Turbine, error) {
 	// имитируем работу с БД. Типа мы выполнили sql запрос и получили эти строки из БД
 	return []ds.Turbine{ // массив элементов из наших структур
 		{
@@ -82,7 +82,7 @@ func (r *Repository) GetTurbines() ([]ds.Turbine, error) {
 	}, nil
 }
 
-func (r *Repository) GetTurbine(id uint) (ds.Turbine, error) {
+func (r *TurbinesRepository) GetTurbine(id uint) (ds.Turbine, error) {
 	// тут у вас будет логика получения нужной услуги, тоже наверное через цикл в первой лабе, и через запрос к БД начиная со второй
 	turbines, err := r.GetTurbines()
 	if err != nil {
@@ -97,7 +97,7 @@ func (r *Repository) GetTurbine(id uint) (ds.Turbine, error) {
 	return ds.Turbine{}, fmt.Errorf("заказ не найден") // тут нужна кастомная ошибка, чтобы понимать на каком этапе возникла ошибка и что произошло
 }
 
-func (r *Repository) GetTurbinesByTitle(title string) ([]ds.Turbine, error) {
+func (r *TurbinesRepository) GetTurbinesByTitle(title string) ([]ds.Turbine, error) {
 	turbines, err := r.GetTurbines()
 	if err != nil {
 		return []ds.Turbine{}, err
@@ -113,13 +113,13 @@ func (r *Repository) GetTurbinesByTitle(title string) ([]ds.Turbine, error) {
 	return result, nil
 }
 
-func (r *Repository) GetRequest(id uint) (ds.Request, error) {
+func (r *TurbinesRepository) GetRequest(id uint) (ds.GenerationCalculationRequest, error) {
 	turbines, err := r.GetTurbines()
 	if err != nil {
 		logrus.Error("Error occurred while getting turbines for request")
 	}
 
-	requests := map[uint]ds.Request{
+	requests := map[uint]ds.GenerationCalculationRequest{
 		1: {
 			Period: "year",
 			SelectedTurbines: []ds.SelectedTurbine{

@@ -11,10 +11,10 @@ import (
 )
 
 type TurbineHandler struct {
-	Repository *repository.Repository
+	Repository *repository.TurbinesRepository
 }
 
-func NewTurbineHandler(r *repository.Repository) *TurbineHandler {
+func NewTurbineHandler(r *repository.TurbinesRepository) *TurbineHandler {
 	return &TurbineHandler{Repository: r}
 }
 

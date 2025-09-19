@@ -9,15 +9,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type RequestHandler struct {
-	Repository *repository.Repository
+type GenerationCalculationRequestHandler struct {
+	TurbinesRepository *repository.TurbinesRepository
 }
 
-func NewRequestHandler(r *repository.Repository) *RequestHandler {
-	return &RequestHandler{Repository: r}
+func NewGenerationCalculationRequestHandler(r *repository.TurbinesRepository) *GenerationCalculationRequestHandler {
+	return &GenerationCalculationRequestHandler{TurbinesRepository: r}
 }
 
-func (r *RequestHandler) GetRequest(ctx *gin.Context) {
+func (r *GenerationCalculationRequestHandler) GetRequest(ctx *gin.Context) {
 	idParam := ctx.Param("id")
 
 	idSigned, err := strconv.Atoi(idParam)
@@ -25,7 +25,7 @@ func (r *RequestHandler) GetRequest(ctx *gin.Context) {
 		logrus.Error(err)
 	}
 
-	request, err := r.Repository.GetRequest(uint(idSigned))
+	request, err := r.TurbinesRepository.GetRequest(uint(idSigned))
 	if err != nil {
 		logrus.Error(err)
 	}

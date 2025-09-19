@@ -1,6 +1,7 @@
 package api
 
 import (
+	"html/template"
 	"log"
 	"path/filepath"
 	"rip/internal/app/handler"
@@ -18,10 +19,16 @@ func StartServer() {
 		logrus.Error("ошибка инициализации репозитория")
 	}
 	turbineHandler := handler.NewTurbineHandler(repo)
-	requestHandler := handler.NewRequestHandler(repo)
+	generationCalculationRequestHandler := handler.NewGenerationCalculationRequestHandler(repo)
 
 	r := gin.Default()
 	// добавляем наш html/шаблон
+
+	r.SetFuncMap(template.FuncMap{
+		"add": func(a, b int) int {
+			return a + b
+		},
+	})
 
 	files, _ := filepath.Glob("templates/*.*")
 	subfiles, _ := filepath.Glob("templates/**/*.*")
@@ -35,7 +42,7 @@ func StartServer() {
 	r.GET("/", turbineHandler.GetTurbines)
 	r.GET("/turbines", turbineHandler.GetTurbines)
 	r.GET("/turbines/:id", turbineHandler.GetTurbine)
-	r.GET("/requests/:id", requestHandler.GetRequest)
+	r.GET("/requests/:id", generationCalculationRequestHandler.GetRequest)
 
 	r.Run()
 	log.Println("Server down")

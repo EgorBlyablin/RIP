@@ -59,7 +59,7 @@ header {
             line-height: 48px;
         }
 
-        .search {
+        .turbine-search {
             height: 100%;
 
             display: grid;
@@ -83,8 +83,9 @@ header {
                 
                 &.search-btn {
                     padding: 8px;
-                    border-width: 0;
-                    border-left-width: 1px;
+                    border: 1px solid var(--btn-bg-color);
+                    border-top-width: 0;
+                    border-bottom-width: 0;
                     
                     img {
                         width: 100%;
@@ -335,7 +336,7 @@ main {
     }
 }
 
-.request {
+.generation-calculation-request {
     margin-top: -10px;
 
     .properties {
@@ -375,7 +376,7 @@ main {
         }
     }
 
-    .request-details {
+    .generation-calculation-request-details {
         display: flex;
         gap: 20px;
 
