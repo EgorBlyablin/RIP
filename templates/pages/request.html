@@ -1,0 +1,88 @@
+{{define "request"}}
+<!DOCTYPE html>
+<html>
+    {{template "head" .}}
+    <body>
+        {{template "header" .}}
+        <main>
+            <h1>Создание заявки</h1>
+            <form class="request">
+                <div class="properties">
+                    <div class="period-selector__wrapper">
+                        <p>Период расчета:</p>
+                        <div class="period-selector__radio">    
+                            <input type="radio" name="period" id="year" value="year" {{if eq .request.Period "year"}}checked{{end}}><label for="year">Год</label>
+                            <input type="radio" name="period" id="month" value="month" {{if eq .request.Period "month"}}checked{{end}}><label for="month">Месяц</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="request-details">
+                    <ol class="turbines-list">
+                        {{range $i, $selectedTurbineParams := .request.SelectedTurbines}}
+                        {{with $selectedTurbineParams}}
+                        <li>
+                            <img src="{{.Turbine.ImageSrc}}" alt="Изображение {{.Turbine.Title}}">
+                            <div class="details">
+                                <h2>{{$i}}. {{.Turbine.Title}}</h2>
+                                <ul class="parameters">
+                                    <li>
+                                        Мощность: <b>{{.Turbine.Power}} кВт</b>
+                                    </li>
+                                    <li>
+                                        Мачта: <b>{{.Turbine.Height}} м</b>
+                                    </li>
+                                </ul>
+                                <ul class="environment-parameters">
+                                    <li>
+                                        <label for="wind-{{$i}}">
+                                            V<sub>ср. ветра</sub>(10 м), м/с:
+                                        </label>
+                                        <input type="number" id="wind-{{$i}}" value="{{.AvgVelocity}}" step="0.1" min="0.1" />
+                                    </li>
+                                    <li>
+                                        <label for="terrain-{{$i}}">
+                                            Местность:
+                                        </label>
+                                        <select name="terrain-{{$i}}" id="terrain-{{$i}}">
+                                            {{range $terrainName, $terrainData := $.terrains}}
+                                            <option value="{{$terrainName}}" {{if eq $terrainName $selectedTurbineParams.Terrain}}selected{{end}}>
+                                                {{$terrainData.Translation}}
+                                            </option>
+                                            {{end}}
+                                        </select>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="calculation-result">
+                                <h3>Выработка за период:</h3>
+                                <p>{{.CalculatedGeneration}} МВт</p>
+                            </div>
+                        </li>
+                        {{end}}
+                        {{end}}
+                    </ol>
+                    <div class="calculation-result__summary-wrapper">
+                        <div class="calculation-result__summary">
+                            <h2>Общая выработка:</h2>
+                            <ol>
+                                {{range $i, $selectedTurbineParams := .request.SelectedTurbines}}
+                                {{with $selectedTurbineParams}}
+                                <li>
+                                    <p>
+                                        {{$i}}. {{.Turbine.Title}}: <b>{{.CalculatedGeneration}} МВт</b>
+                                    </p>
+                                </li>
+                                {{end}}
+                                {{end}}
+                            </ol>
+                            <p class="result">
+                                ИТОГО: <b>{{.request.CalculatedGeneration}} МВт</b>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </body>
+</html>
+{{end}}

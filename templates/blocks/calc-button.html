@@ -1,0 +1,9 @@
+{{define "calc-button"}}
+<a href="/requests/1" class="calc-btn">
+    <div class="images-wrapper">
+        <img class="default" src="/static/icons/request.png" alt="">
+        <img class="hovered" src="/static/icons/request-hover.png" alt="">
+    </div>
+    <p class="badge">{{.requestItems}}</p>
+</a>
+{{end}}
