@@ -46,9 +46,8 @@ header {
         max-width: 1140px;
         margin: 0 auto;
 
-        display: grid;
-        align-items: center;
-        grid-template-columns: 1fr 1fr 1fr;
+        display: flex;
+        justify-content: space-between;
         gap: 32px;
 
         .logo {
@@ -57,54 +56,6 @@ header {
             font-weight: bold;
             font-size: 36px;
             line-height: 48px;
-        }
-
-        .turbine-search {
-            height: 100%;
-
-            display: grid;
-            grid-template-columns: 1fr auto;
-
-            border: 1px solid var(--input-border-color);
-
-            input {
-                border: none;
-
-                padding: 8px 16px;
-
-                font-size: 16;
-                line-height: 20px;
-                font-weight: 400;
-            }
-
-            button {
-                height: 100%;
-                aspect-ratio: 1;
-                
-                &.search-btn {
-                    padding: 8px;
-                    border: 1px solid var(--btn-bg-color);
-                    border-top-width: 0;
-                    border-bottom-width: 0;
-                    
-                    img {
-                        width: 100%;
-                        height: 100%;
-                        object-fit: contain;
-                    }
-                }
-            }
-        }
-
-        .home-btn {
-            font-size: 14px;
-            justify-self: end;
-            align-items: center;
-
-            svg {
-                height: 16px;
-                width: 16px;
-            }
         }
     }
 }
@@ -115,7 +66,9 @@ main {
     margin: 0 auto;
     padding-bottom: 60px;
 
-    > h1 {
+    h1 {
+        box-sizing: border-box;
+
         color: var(--secondary-color);
 
         text-transform: uppercase;
@@ -152,76 +105,53 @@ main {
     }
 
     transition: background-color .2s ease-in-out,
-                color .2s ease-in-out;
+    color .2s ease-in-out;
 }
 
-.calc-btn {
-    box-sizing: border-box;
-    width: 100px;
-    height: 100px;
+.btn-with-image {
+    font-size: 14px;
+    justify-self: end;
+    align-items: center;
 
-    position: fixed;
-    left: 70px;
-    bottom: 70px;
-
-    padding: 3px;
-
-    border: 3px solid var(--btn-bg-color);
-    border-radius: 100px;
+    svg {
+        fill: var(--btn-text-color);
+        height: 16px;
+        width: 16px;
+    }
 
     &:hover {
-        border-color: var(--btn-bg-color-hover);
+        fill: var(--btn-text-color-hover);
 
         .images-wrapper {
-            border-color: var(--btn-text-color-hover);
-            background-color: var(--btn-bg-color-hover);
-                
-            .default {
-                display: none;
-            }
 
-            .hovered {
-                display: initial;
+            img,
+            svg {
+                &:hover-within {
+                    display: block;
+                }
+
+                &:hover-within {
+                    display: none;
+                }
             }
         }
     }
 
     .images-wrapper {
-        height: 52px;
-        padding: 15px;
 
-        border: 3px solid var(--btn-text-color);
-        background-color: var(--btn-bg-color);
-        border-radius: 100px;
+        img,
+        svg {
+            height: 16px;
+            width: 16px;
 
-        will-change: contents;
+            &.default {
+                display: block;
+            }
 
-        img {
-            width: 100%;
-            height: 100%;
+            &.hovered {
+                display: none;
+            }
         }
-
-        .hovered {
-            display: none;
-        }
-    }
-
-    .badge {
-        margin: 0;
-        padding: 4px 16px;
-        border-radius: 100px;
-
-        background-color: var(--btn-text-color);
-        border: 3px solid var(--btn-bg-color);
-        color: var(--text-color-primary);
-
-        position: absolute;
-        top: 0;
-        right: 0;
-        transform: translateX(40%);
-
-        font-size: 16px;
-        font-weight: 600;
     }
 }
 
@@ -279,6 +209,58 @@ main {
 
             display: flex;
             gap: 10px;
+        }
+    }
+}
+
+.turbines-list__title-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin: 36px 0;
+
+    h1 {
+        margin: 0;
+    }
+
+    .turbine-search {
+        height: 100%;
+
+        display: grid;
+        grid-template-columns: 1fr auto;
+
+        border: 1px solid var(--input-border-color);
+
+        input {
+            max-width: 250px;
+            width: 100%;
+
+            border: none;
+
+            padding: 8px 16px;
+
+            font-size: 16px;
+            line-height: 20px;
+            font-weight: 400;
+        }
+
+        button {
+            height: 100%;
+            aspect-ratio: 1;
+
+            &.search-btn {
+                padding: 8px;
+                border: 1px solid var(--btn-bg-color);
+                border-top-width: 0;
+                border-bottom-width: 0;
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                }
+            }
         }
     }
 }
@@ -362,13 +344,13 @@ main {
                 input {
                     display: none;
 
-                    & + label {
+                    &+label {
                         cursor: pointer;
                         padding: 4px 12px;
                         background-color: var(--secondary-color);
                     }
 
-                    &:checked + label {
+                    &:checked+label {
                         background-color: var(--btn-bg-color);
                     }
                 }
@@ -411,7 +393,7 @@ main {
 
                         color: var(--text-color-secondary);
                     }
-                
+
                     .parameters {
                         font-size: 16px;
 
@@ -439,7 +421,8 @@ main {
                             align-items: center;
                         }
 
-                        input, select {
+                        input,
+                        select {
                             border-style: solid;
                             border-color: var(--secondary-color);
                             background-color: var(--bg-color);
@@ -450,7 +433,8 @@ main {
 
                             -moz-appearance: textfield;
 
-                            &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+                            &::-webkit-inner-spin-button,
+                            &::-webkit-outer-spin-button {
                                 appearance: none
                             }
                         }
@@ -493,7 +477,7 @@ main {
 
             .calculation-result__summary {
                 background-color: var(--bg-color-secondary);
-                
+
                 padding: 20px 10px;
 
                 display: flex;

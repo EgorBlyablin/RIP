@@ -17,21 +17,20 @@ func NewGenerationCalculationRequestHandler(r *repository.TurbinesRepository) *G
 	return &GenerationCalculationRequestHandler{TurbinesRepository: r}
 }
 
-func (r *GenerationCalculationRequestHandler) GetRequest(ctx *gin.Context) {
-	idParam := ctx.Param("id")
+func (r *GenerationCalculationRequestHandler) GetGenerationCalculationRequest(ctx *gin.Context) {
+	generationCalculationIdParam := ctx.Param("generationCalculationId")
 
-	idSigned, err := strconv.Atoi(idParam)
+	generationCalculationIdSigned, err := strconv.Atoi(generationCalculationIdParam)
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	request, err := r.TurbinesRepository.GetRequest(uint(idSigned))
+	generationCalculationRequest, err := r.TurbinesRepository.GetCalculationGenerationRequest(uint(generationCalculationIdSigned))
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	ctx.HTML(http.StatusOK, "request", gin.H{
-		"request":  request,
-		"terrains": repository.Terrains,
+	ctx.HTML(http.StatusOK, "generation-calculation-request", gin.H{
+		"generationCalculationRequest": generationCalculationRequest,
 	})
 }

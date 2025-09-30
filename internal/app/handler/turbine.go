@@ -22,45 +22,44 @@ func (h *TurbineHandler) GetTurbines(ctx *gin.Context) {
 	var turbines []ds.Turbine
 	var err error
 
-	searchQuery := ctx.Query("query") // получаем значение из поля поиска
+	turbineTitleQuery := ctx.Query("turbine-title-query")
 
-	if searchQuery == "" { // если поле поиска пусто, то просто получаем из репозитория все записи
+	if turbineTitleQuery == "" { // если поле поиска пусто, то просто получаем из репозитория все записи
 		turbines, err = h.Repository.GetTurbines()
 	} else {
-		turbines, err = h.Repository.GetTurbinesByTitle(searchQuery) // в ином случае ищем заказ по заголовку
+		turbines, err = h.Repository.GetTurbinesByTitle(turbineTitleQuery) // в ином случае ищем заказ по заголовку
 	}
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	request, err := h.Repository.GetRequest(1)
+	request, err := h.Repository.GetCalculationGenerationRequest(1)
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	ctx.HTML(http.StatusOK, "list", gin.H{
-		"turbines":     turbines,
-		"query":        searchQuery,
-		"requestItems": len(request.SelectedTurbines),
+	ctx.HTML(http.StatusOK, "turbines-list", gin.H{
+		"turbines":                turbines,
+		"turbineTitleQuery":       turbineTitleQuery,
+		"calculationRequestItems": len(request.SelectedTurbines),
 	})
 }
 
 func (h *TurbineHandler) GetTurbine(ctx *gin.Context) {
-	idStr := ctx.Param("id") // получаем id заказа из урла (то есть из /turbine/:id)
-	// через двоеточие мы указываем параметры, которые потом сможем считать через функцию выше
-	idSigned, err := strconv.Atoi(idStr) // так как функция выше возвращает нам строку, нужно ее преобразовать в int
-	id := uint(idSigned)
+	turbineIdStr := ctx.Param("turbineId")
+	turbineIdSigned, err := strconv.Atoi(turbineIdStr)
+	turbineId := uint(turbineIdSigned)
 
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	turbine, err := h.Repository.GetTurbine(id)
+	turbine, err := h.Repository.GetTurbine(turbineId)
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	ctx.HTML(http.StatusOK, "details", gin.H{
+	ctx.HTML(http.StatusOK, "turbine-details", gin.H{
 		"turbine": turbine,
 	})
 }

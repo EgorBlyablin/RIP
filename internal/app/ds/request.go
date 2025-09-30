@@ -1,13 +1,9 @@
 package ds
 
-type TerrainType struct {
-	Translation string
-}
-
 type SelectedTurbine struct {
 	Turbine              Turbine
 	AvgVelocity          float32
-	Terrain              string
+	Alpha                float32
 	CalculatedGeneration float32
 }
 

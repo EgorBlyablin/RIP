@@ -8,7 +8,7 @@ import (
 func main() {
 	fmt.Println("Hello")
 
-	api.StartServer()
+	api.StartGenerationCalculationServer()
 
 	fmt.Println("Bye")
 }

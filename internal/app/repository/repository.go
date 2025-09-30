@@ -10,22 +10,12 @@ import (
 
 type TurbinesRepository struct{}
 
-func NewRepository() (*TurbinesRepository, error) {
+func NewTurbineRepository() (*TurbinesRepository, error) {
 	return &TurbinesRepository{}, nil
 }
 
 func MinioImagePath(image string) string {
 	return fmt.Sprintf("http://localhost:9001/api/v1/buckets/images/objects/download?preview=True&prefix=%s", image)
-}
-
-var Terrains = map[string]ds.TerrainType{
-	"blue_water":  {Translation: "Открытое море"},
-	"plain":       {Translation: "Равнина"},
-	"forest":      {Translation: "Лес"},
-	"countryside": {Translation: "Сельская местность"},
-	"small_city":  {Translation: "Малый город"},
-	"large_city":  {Translation: "Крупный город"},
-	"megapolis":   {Translation: "Мегаполис"},
 }
 
 func (r *TurbinesRepository) GetTurbines() ([]ds.Turbine, error) {
@@ -83,18 +73,17 @@ func (r *TurbinesRepository) GetTurbines() ([]ds.Turbine, error) {
 }
 
 func (r *TurbinesRepository) GetTurbine(id uint) (ds.Turbine, error) {
-	// тут у вас будет логика получения нужной услуги, тоже наверное через цикл в первой лабе, и через запрос к БД начиная со второй
 	turbines, err := r.GetTurbines()
 	if err != nil {
-		return ds.Turbine{}, err // тут у нас уже есть кастомная ошибка из нашего метода, поэтому мы можем просто вернуть ее
+		return ds.Turbine{}, err
 	}
 
 	for _, turbine := range turbines {
 		if turbine.ID == id {
-			return turbine, nil // если нашли, то просто возвращаем найденный заказ (услугу) без ошибок
+			return turbine, nil
 		}
 	}
-	return ds.Turbine{}, fmt.Errorf("заказ не найден") // тут нужна кастомная ошибка, чтобы понимать на каком этапе возникла ошибка и что произошло
+	return ds.Turbine{}, fmt.Errorf("заказ не найден")
 }
 
 func (r *TurbinesRepository) GetTurbinesByTitle(title string) ([]ds.Turbine, error) {
@@ -113,7 +102,7 @@ func (r *TurbinesRepository) GetTurbinesByTitle(title string) ([]ds.Turbine, err
 	return result, nil
 }
 
-func (r *TurbinesRepository) GetRequest(id uint) (ds.GenerationCalculationRequest, error) {
+func (r *TurbinesRepository) GetCalculationGenerationRequest(id uint) (ds.GenerationCalculationRequest, error) {
 	turbines, err := r.GetTurbines()
 	if err != nil {
 		logrus.Error("Error occurred while getting turbines for request")
@@ -123,9 +112,9 @@ func (r *TurbinesRepository) GetRequest(id uint) (ds.GenerationCalculationReques
 		1: {
 			Period: "year",
 			SelectedTurbines: []ds.SelectedTurbine{
-				{Turbine: turbines[0], AvgVelocity: 2.3, Terrain: "plain", CalculatedGeneration: 14.7},
-				{Turbine: turbines[3], AvgVelocity: 3.3, Terrain: "countryside", CalculatedGeneration: 240.8},
-				{Turbine: turbines[5], AvgVelocity: 5.7, Terrain: "blue_water", CalculatedGeneration: 460.1},
+				{Turbine: turbines[0], AvgVelocity: 2.3, Alpha: 0.12, CalculatedGeneration: 14.7},
+				{Turbine: turbines[3], AvgVelocity: 3.3, Alpha: 0.15, CalculatedGeneration: 240.8},
+				{Turbine: turbines[5], AvgVelocity: 5.7, Alpha: 0.1, CalculatedGeneration: 460.1},
 			},
 			CalculatedGeneration: 715.8,
 		},
