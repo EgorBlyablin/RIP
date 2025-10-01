@@ -358,171 +358,72 @@ main {
         }
     }
 
+    .calculation-request__table-header {
+        display: grid;
+        grid-template-columns: 300px 1fr 1fr 1fr 1fr 200px;
+        justify-content: space-between;
+        background-color: var(--bg-color-secondary);
+        
+        align-items: center;
+        justify-items: center;
+
+        margin-top: 30px;
+        margin-bottom: 10px;
+
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 24px;
+    }
+
     .generation-calculation-request-details {
         display: flex;
+        flex-direction: column;
         gap: 20px;
 
-        .turbines-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        > div {
+            background-color: var(--bg-color-secondary);
 
-            width: 830px;
+            display: grid;
+            grid-template-columns: 300px 1fr 1fr 1fr 1fr 200px;
+            justify-content: space-between;
+            align-items: center;
+            justify-items: center;
 
-            list-style: none;
-
-            li {
+            :first-child {
                 display: flex;
-                background-color: var(--bg-color-secondary);
+                gap: 20px;
+                align-items: center;
+                justify-self: flex-start;
 
                 img {
-                    height: 190px;
-                    aspect-ratio: 1;
+                    display: block;
+                    height: 100px;
+                    width: 100px;
                     object-fit: cover;
                 }
+            }
 
-                .details {
-                    padding: 20px;
-                    padding-right: 10px;
+            input {
+                border-style: solid;
+                border-color: var(--secondary-color);
+                background-color: var(--bg-color);
 
-                    align-content: center;
+                margin-left: 5px;
 
-                    h2 {
-                        font-size: 32px;
-                        line-height: 40px;
+                padding: 6px 12px;
 
-                        color: var(--text-color-secondary);
-                    }
+                -moz-appearance: textfield;
 
-                    .parameters {
-                        font-size: 16px;
-
-                        display: flex;
-                        gap: 20px;
-
-                        b {
-                            margin-left: 5px;
-                        }
-                    }
-
-                    .environment-parameters {
-                        font-size: 16px;
-
-                        margin-top: 20px;
-
-                        display: flex;
-                        flex-direction: column;
-                        gap: 10px;
-
-                        li {
-                            white-space: nowrap;
-
-                            display: flex;
-                            align-items: center;
-                        }
-
-                        input,
-                        select {
-                            border-style: solid;
-                            border-color: var(--secondary-color);
-                            background-color: var(--bg-color);
-
-                            margin-left: 5px;
-
-                            padding: 6px 12px;
-
-                            -moz-appearance: textfield;
-
-                            &::-webkit-inner-spin-button,
-                            &::-webkit-outer-spin-button {
-                                appearance: none
-                            }
-                        }
-
-                        input {
-                            width: 50px;
-                        }
-                    }
-                }
-
-                .calculation-result {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: end;
-                    width: 100%;
-
-                    padding: 20px;
-                    padding-left: 10px;
-
-                    h3 {
-                        font-size: 20px;
-                        line-height: 28px;
-                        color: var(--text-color-secondary);
-                        font-weight: 400;
-                    }
-
-                    p {
-                        font-size: 32px;
-                        line-height: 40px;
-                        font-weight: 600;
-                    }
+                &::-webkit-inner-spin-button,
+                &::-webkit-outer-spin-button {
+                    appearance: none
                 }
             }
         }
 
-        .calculation-result__summary-wrapper {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
+    }
 
-            .calculation-result__summary {
-                background-color: var(--bg-color-secondary);
-
-                padding: 20px 10px;
-
-                display: flex;
-                gap: 10px;
-                flex-direction: column;
-                align-items: center;
-
-                h2 {
-                    font-size: 24px;
-                    line-height: 36px;
-                    color: var(--text-color-secondary);
-                    font-weight: 600;
-                }
-
-                ol {
-                    list-style: none;
-
-                    display: flex;
-                    flex-direction: column;
-                    gap: 5px;
-                    padding: 0 10px;
-
-                    li {
-                        font-size: 16px;
-                        line-height: 24px;
-                        font-weight: 400;
-                        color: var(--text-color-secondary);
-
-                        b {
-                            font-weight: 700;
-                        }
-                    }
-                }
-
-                .result {
-                    font-size: 24px;
-                    line-height: 36px;
-                    font-weight: 600;
-                    color: var(--text-color-secondary);
-
-                    b {
-                        color: var(--text-color-primary);
-                    }
-                }
-            }
-        }
+    .expected-generation {
+        font-size: 20px;
     }
 }
