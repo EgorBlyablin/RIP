@@ -5,13 +5,19 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 )
 
 func (r *TurbineHandler) GetGenerationRequest(ctx *gin.Context) {
-	generationRequest, err := r.TurbinesRepository.GetGenerationRequest(userId)
+	generationRequestId, err := strconv.Atoi(ctx.Param("generationRequestId"))
 	if err != nil {
-		log.Error(err)
+		r.errorHandler(ctx, err)
+		return
+	}
+
+	generationRequest, err := r.TurbinesRepository.GetGenerationRequest(uint(generationRequestId))
+	if err != nil {
+		r.errorHandler(ctx, err)
+		return
 	}
 
 	ctx.HTML(http.StatusOK, "generation-request", gin.H{
@@ -22,19 +28,34 @@ func (r *TurbineHandler) GetGenerationRequest(ctx *gin.Context) {
 func (r *TurbineHandler) AddTurbineToGenerationRequest(ctx *gin.Context) {
 	turbineId, err := strconv.Atoi(ctx.Request.FormValue("turbineId"))
 	if err != nil {
-		log.Error(err)
+		r.errorHandler(ctx, err)
+		return
 	}
 
-	if err := r.TurbinesRepository.AddTurbineToGenerationRequest(userId, uint(turbineId)); err != nil {
-		log.Error(err)
+	generationRequest, err := r.TurbinesRepository.GetOrCreateUserDraftGenerationRequest(userId)
+	if err != nil {
+		r.errorHandler(ctx, err)
+		return
+	}
+
+	if err := r.TurbinesRepository.AddTurbineToDraftGenerationRequest(uint(generationRequest.ID), uint(turbineId)); err != nil {
+		r.errorHandler(ctx, err)
+		return
 	}
 
 	ctx.Redirect(http.StatusSeeOther, "/")
 }
 
 func (r *TurbineHandler) DeleteGenerationRequest(ctx *gin.Context) {
-	if err := r.TurbinesRepository.DeleteGenerationRequest(userId); err != nil {
-		log.WithError(err).Error("Failed to delete generation request")
+	generationRequestId, err := strconv.Atoi(ctx.Param("generationRequestId"))
+	if err != nil {
+		r.errorHandler(ctx, err)
+		return
+	}
+
+	if err := r.TurbinesRepository.DeleteDraftGenerationRequest(uint(generationRequestId)); err != nil {
+		r.errorHandler(ctx, err)
+		return
 	}
 
 	ctx.Redirect(http.StatusSeeOther, "/")

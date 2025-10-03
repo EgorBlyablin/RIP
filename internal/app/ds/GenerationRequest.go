@@ -18,7 +18,7 @@ type GenerationRequest struct {
 	ClosedAt   *time.Time
 	DeletedAt  *time.Time
 
-	PeriodDays           uint16   `gorm:"not null;check:period_days > 0"`
+	PeriodDays *uint16 `gorm:"check:period_days > 0"`
 
 	TurbineGenerationRequests []TurbineGenerationRequest
 }

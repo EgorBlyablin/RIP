@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 )
 
 func (h *TurbineHandler) GetTurbines(ctx *gin.Context) {
@@ -21,13 +20,17 @@ func (h *TurbineHandler) GetTurbines(ctx *gin.Context) {
 		turbines, err = h.TurbinesRepository.GetTurbinesByTitle(turbineTitleQuery) // в ином случае ищем заказ по заголовку
 	}
 	if err != nil {
-		log.Error(err)
+		h.errorHandler(ctx, err)
+		return
 	}
+
+	generationRequest, _ := h.TurbinesRepository.GetDraftGenerationRequest(userId)
 
 	ctx.HTML(http.StatusOK, "turbines-list", gin.H{
 		"turbines":               turbines,
 		"turbineTitleQuery":      turbineTitleQuery,
-		"generationRequestItems": h.TurbinesRepository.GetGenerationRequestsCount(userId),
+		"generationRequest":      generationRequest,
+		"generationRequestItems": h.TurbinesRepository.GetDraftGenerationRequestsCount(userId),
 	})
 }
 
@@ -37,12 +40,14 @@ func (h *TurbineHandler) GetTurbine(ctx *gin.Context) {
 	turbineId := uint(turbineIdSigned)
 
 	if err != nil {
-		log.Error(err)
+		h.errorHandler(ctx, err)
+		return
 	}
 
 	turbine, err := h.TurbinesRepository.GetTurbine(turbineId)
 	if err != nil {
-		log.Error(err)
+		h.errorHandler(ctx, err)
+		return
 	}
 
 	ctx.HTML(http.StatusOK, "turbine-details", gin.H{

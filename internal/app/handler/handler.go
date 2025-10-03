@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"net/http"
 	"path/filepath"
 	"rip/internal/app/repository"
 
@@ -24,9 +25,9 @@ func (h *TurbineHandler) RegisterHandler(router *gin.Engine) {
 	router.GET("/turbines", h.GetTurbines)
 	router.GET("/turbines/:turbineId", h.GetTurbine)
 
-	router.GET("/generation-request", h.GetGenerationRequest)
-	router.POST("/generation-request", h.AddTurbineToGenerationRequest)
-	router.POST("/delete-generation-request", h.DeleteGenerationRequest)
+	router.GET("/generation-request/:generationRequestId", h.GetGenerationRequest)
+	router.POST("/add-to-generation-request", h.AddTurbineToGenerationRequest)
+	router.POST("/delete-generation-request/:generationRequestId", h.DeleteGenerationRequest)
 }
 
 // RegisterStatic То же самое, что и с маршрутами, регистрируем статику
@@ -40,9 +41,9 @@ func (h *TurbineHandler) RegisterStatic(router *gin.Engine) {
 }
 
 // errorHandler для более удобного вывода ошибок
-func (h *TurbineHandler) errorHandler(ctx *gin.Context, errorStatusCode int, err error) {
+func (h *TurbineHandler) errorHandler(ctx *gin.Context, err error) {
 	log.Error(err.Error())
-	ctx.JSON(errorStatusCode, gin.H{
+	ctx.JSON(http.StatusInternalServerError, gin.H{
 		"status":      "error",
 		"description": err.Error(),
 	})

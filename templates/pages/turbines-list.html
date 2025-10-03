@@ -7,15 +7,15 @@
         <main>
             <div class="turbines-list__title-wrapper">
                 <h1>Ветрогенераторы{{if .turbineTitleQuery}} (поиск: "{{.turbineTitleQuery}}"){{end}}</h1> 
-                {{if .generationRequestItems}}           
-                    <a href="/generation-request" class="btn btn-with-image">
+                <form {{if .generationRequest}}action="/generation-request/{{.generationRequest.ID}}"{{end}} method="get">
+                    <button type="submit" class="btn btn-with-image" {{if not .generationRequest}}disabled{{end}}>
                         Расчет ({{.generationRequestItems}})
                         <div class="images-wrapper">
                             <img class="default" src="/static/icons/generation-request.png" alt="">
                             <img class="hovered" src="/static/icons/generation-request-hover.png" alt="">
                         </div>
-                    </a>
-                {{end}}
+                    </button>
+                </form>
                 <form class="turbine-search" action="/turbines" method="GET">
                     <input type="text" name="turbine-title-query" placeholder="Поиск" value="{{.turbineTitleQuery}}">
                     <button class="btn search-btn" type="submit">
@@ -46,7 +46,7 @@
                             </ul>
                             <div class="buttons-wrapper">
                                 <a class="btn" href="/turbines/{{.ID}}">Подробнее</a>
-                                <form action="/generation-request" method="post">
+                                <form action="/add-to-generation-request" method="post">
                                     <button class="btn" name="turbineId" value="{{.ID}}" type="submit">Рассчитать</button>
                                 </form>
                             </div>

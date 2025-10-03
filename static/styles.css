@@ -14,6 +14,7 @@
     --btn-bg-color-hover: var(--bg-color);
     --btn-text-color-hover: var(--primary-color);
 
+    --btn-bg-color-disabled: #7c7c7c;
     --btn-bg-color-danger: #d9534f;
     --btn-bg-color-hover-danger: #c9302c;
 
@@ -108,6 +109,13 @@ main {
         background-color: var(--btn-bg-color-hover);
         color: var(--btn-text-color-hover);
         fill: var(--btn-text-color-hover);
+    }
+
+    &:disabled, &:disabled:hover {
+        background-color: var(--btn-bg-color-disabled);
+        border-color: var(--btn-bg-color-disabled);
+        color: var(--btn-text-color);
+        fill: var(--btn-bg-color-disabled);
     }
 }
 

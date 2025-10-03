@@ -9,28 +9,50 @@ import (
 	"gorm.io/gorm"
 )
 
-func (r *TurbinesRepository) GetGenerationRequest(userId uint) (*ds.GenerationRequest, error) {
+func (r *TurbinesRepository) GetGenerationRequest(generationRequestId uint) (*ds.GenerationRequest, error) {
 	generationRequest := &ds.GenerationRequest{}
 
-	if err := r.db.Where(ds.GenerationRequest{
-		CreatedByID: userId,
-		Status:      "draft",
-	}).Preload("TurbineGenerationRequests").Preload("TurbineGenerationRequests.Turbine").Attrs(ds.GenerationRequest{
-		PeriodDays: 30,
-	}).FirstOrCreate(generationRequest).Error; err != nil {
-		log.WithError(err).Error("Failed to get or create generation request")
+	err := r.db.Where(&ds.GenerationRequest{ID: generationRequestId}).Preload("TurbineGenerationRequests").Preload("TurbineGenerationRequests.Turbine").First(generationRequest).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
 	return generationRequest, nil
 }
 
-func (r *TurbinesRepository) GetGenerationRequestsCount(userId uint) uint {
+func (r *TurbinesRepository) GetDraftGenerationRequest(userId uint) (*ds.GenerationRequest, error) {
+	generationRequest := &ds.GenerationRequest{}
+
+	err := r.db.Where(&ds.GenerationRequest{
+		CreatedByID: userId,
+		Status:      "draft",
+	}).Preload("TurbineGenerationRequests").Preload("TurbineGenerationRequests.Turbine").First(generationRequest).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	return generationRequest, nil
+}
+
+func (r *TurbinesRepository) GetOrCreateUserDraftGenerationRequest(userId uint) (*ds.GenerationRequest, error) {
+	generationRequest := &ds.GenerationRequest{}
+
+	if err := r.db.Where(&ds.GenerationRequest{
+		CreatedByID: userId,
+		Status:      "draft",
+	}).Preload("TurbineGenerationRequests").Preload("TurbineGenerationRequests.Turbine").FirstOrCreate(generationRequest).Error; err != nil {
+		log.WithError(err).Error("Failed to get or create draft generation request")
+		return nil, err
+	}
+
+	return generationRequest, nil
+}
+
+func (r *TurbinesRepository) GetDraftGenerationRequestsCount(userId uint) uint {
 	generationRequests := &[]ds.GenerationRequest{}
-	err := r.db.
-		Where("created_by_id = ? AND status = ?", userId, "draft").
-		Order("id DESC").
-		First(&generationRequests).Error
+	err := r.db.Where("created_by_id = ? AND status = ?", userId, "draft").First(&generationRequests).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return 0
@@ -43,24 +65,21 @@ func (r *TurbinesRepository) GetGenerationRequestsCount(userId uint) uint {
 	return uint(r.db.Model(*generationRequests).Association("TurbineGenerationRequests").Count())
 }
 
-func (r *TurbinesRepository) AddTurbineToGenerationRequest(userId uint, turbineId uint) error {
-	generationRequest, err := r.GetGenerationRequest(userId)
-	if err != nil {
-		log.WithError(err).Error("Failed to get generation request")
-		return err
-	}
-
-	r.db.Where(&ds.TurbineGenerationRequest{TurbineID: turbineId, GenerationRequestID: generationRequest.ID}).FirstOrCreate(&ds.TurbineGenerationRequest{})
+func (r *TurbinesRepository) AddTurbineToDraftGenerationRequest(generationRequestId uint, turbineId uint) error {
+	r.db.Where(&ds.TurbineGenerationRequest{
+		TurbineID:           turbineId,
+		GenerationRequestID: generationRequestId,
+	}).FirstOrCreate(&ds.TurbineGenerationRequest{})
 
 	return nil
 }
 
-func (r *TurbinesRepository) DeleteGenerationRequest(userId uint) error {
+func (r *TurbinesRepository) DeleteDraftGenerationRequest(generationRequestId uint) error {
 	if err := r.db.Exec(
-		"UPDATE generation_requests SET status = ?, deleted_at = ? WHERE created_by_id = ? AND status = ?",
+		"UPDATE generation_requests SET status = ?, deleted_at = ? WHERE id = ? AND status = ?",
 		"deleted",
 		time.Now(),
-		userId,
+		generationRequestId,
 		"draft",
 	).Error; err != nil {
 		log.WithError(err).Error("Failed to delete generation request")

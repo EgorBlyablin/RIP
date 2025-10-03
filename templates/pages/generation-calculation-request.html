@@ -11,9 +11,9 @@
             <div class="properties">
                 <div class="period-selector__wrapper">
                     <label for="generationPeriod">Период расчета (дней):</label>
-                    <input type="number" name="generationPeriod" id="generationPeriod" value="{{.generationRequest.PeriodDays}}" min="1" max="3650">
+                    <input type="number" name="generationPeriod" id="generationPeriod" value="{{if .generationRequest.PeriodDays}}{{.generationRequest.PeriodDays}}{{else}}1{{end}}" min="1" max="3650">
                 </div>
-                <form action="/delete-generation-request" method="post">
+                <form action="/delete-generation-request/{{.generationRequest.ID}}" method="post">
                     <button class="btn btn--danger" type="submit">Удалить заявку</button>
                 </form>
             </div>
