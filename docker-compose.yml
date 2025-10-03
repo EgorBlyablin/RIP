@@ -4,8 +4,11 @@ services:
       context: .
     container_name: web-server
     ports:
-      - "8080:8080"
+      - "8000:8000"
+    env_file:
+      - .env
     environment:
+      DB_HOST: postgres
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
@@ -32,6 +35,25 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     volumes:
       - minio_data:/data
+  
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
 
 volumes:
   minio_data:
+  postgres_data:

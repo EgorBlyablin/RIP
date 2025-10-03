@@ -14,6 +14,9 @@
     --btn-bg-color-hover: var(--bg-color);
     --btn-text-color-hover: var(--primary-color);
 
+    --btn-bg-color-danger: #d9534f;
+    --btn-bg-color-hover-danger: #c9302c;
+
     --input-border-color: var(--primary-color);
 }
 
@@ -98,14 +101,25 @@ main {
     color: var(--btn-text-color);
     fill: var(--btn-text-color);
 
+    transition: background-color .2s ease-in-out,
+    color .2s ease-in-out;
+
     &:hover {
         background-color: var(--btn-bg-color-hover);
         color: var(--btn-text-color-hover);
         fill: var(--btn-text-color-hover);
     }
+}
 
-    transition: background-color .2s ease-in-out,
-    color .2s ease-in-out;
+.btn--danger {
+    border: 1px solid var(--btn-bg-color-danger);
+    background-color: var(--btn-bg-color-danger);
+
+    &:hover {
+        background-color: var(--btn-bg-color-hover-danger);
+        color: var(--btn-text-color);
+        fill: var(--btn-text-color);
+    }
 }
 
 .btn-with-image {
@@ -318,47 +332,45 @@ main {
     }
 }
 
-.generation-calculation-request {
+.generation-request {
     margin-top: -10px;
 
     .properties {
         display: flex;
+        justify-content: space-between;
         gap: 10px;
         margin-top: 10px;
         margin-bottom: 18px;
 
         .period-selector__wrapper {
             display: flex;
+            align-items: center;
             gap: 10px;
 
-            p {
-                font-size: 20px;
-                line-height: 24px;
-                font-weight: 400;
-            }
+            font-size: 20px;
+            line-height: 24px;
+            font-weight: 400;
 
-            .period-selector__radio {
-                display: flex;
-                color: var(--btn-text-color);
+            input {
+                border-style: solid;
+                border-color: var(--secondary-color);
+                background-color: var(--bg-color);
 
-                input {
-                    display: none;
+                margin-left: 5px;
 
-                    &+label {
-                        cursor: pointer;
-                        padding: 4px 12px;
-                        background-color: var(--secondary-color);
-                    }
+                padding: 6px 12px;
 
-                    &:checked+label {
-                        background-color: var(--btn-bg-color);
-                    }
+                -moz-appearance: textfield;
+
+                &::-webkit-inner-spin-button,
+                &::-webkit-outer-spin-button {
+                    appearance: none
                 }
             }
         }
     }
 
-    .calculation-request__table-header {
+    .generation-request__table-header {
         display: grid;
         grid-template-columns: 300px 1fr 1fr 1fr 1fr 200px;
         justify-content: space-between;
@@ -375,7 +387,7 @@ main {
         line-height: 24px;
     }
 
-    .generation-calculation-request-details {
+    .generation-request-details {
         display: flex;
         flex-direction: column;
         gap: 20px;
