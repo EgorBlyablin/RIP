@@ -58,7 +58,7 @@ func (r *UsersRepository) CreateUser(user ds.CreateUser) (ds.User, error) {
 		Password: user.Password,
 	}
 
-	err := r.usersDB.Create(newUser).Error
+	err := r.usersDB.Create(&newUser).Error
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		return ds.User{}, ErrorLoginIsTaken
 	}

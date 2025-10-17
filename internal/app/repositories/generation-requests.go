@@ -284,10 +284,23 @@ func (r *GenerationRequestRepository) GetOrCreateDraftGenerationRequest(userId u
 	generationRequest := ds.GenerationRequest{}
 
 	if err := r.GenerationRequestDB.Where(&ds.GenerationRequest{
-		CreatedAt:   time.Now(),
 		CreatedByID: userId,
 		Status:      "draft",
-	}).Preload("TurbineGenerationRequests.Turbine").FirstOrCreate(&generationRequest).Error; err != nil {
+	}).Preload("TurbineGenerationRequests.Turbine").First(&generationRequest).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			newDraft := ds.GenerationRequest{
+				CreatedByID: userId,
+				Status:      "draft",
+				CreatedAt:   time.Now(),
+			}
+			if err := r.GenerationRequestDB.Create(&newDraft).Error; err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"User ID": userId,
+				}).Error("Failed to create draft generation request in DB")
+				return ds.GenerationRequest{}, err
+			}
+			return newDraft, nil
+		}
 		log.WithError(err).WithFields(log.Fields{
 			"User ID": userId,
 		}).Error("Failed to get or create draft generation request from DB")
