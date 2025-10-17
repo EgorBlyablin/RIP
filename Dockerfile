@@ -1,21 +1,14 @@
-FROM golang:alpine AS builder
+FROM golang:alpine
 
 WORKDIR /app
 
+# Install air
+RUN go install github.com/air-verse/air@latest
+
+# Copy go.mod early to cache deps
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN go build -o server ./cmd/rip
-
-
-FROM alpine:latest
-
-WORKDIR /app
-
-COPY config.toml .
-COPY --from=builder /app/server .
-
-EXPOSE 8080
-CMD ["./server"]
+CMD ["air", "-c", ".air.toml"]

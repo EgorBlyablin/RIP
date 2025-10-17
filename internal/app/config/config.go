@@ -6,8 +6,15 @@ import (
 )
 
 type Config struct {
-	ServiceHost string
-	ServicePort int
+	Service struct {
+		Host string
+		Port int
+	}
+
+	S3 struct {
+		Host string
+		Port int
+	}
 }
 
 func NewConfig() (*Config, error) {

@@ -5,31 +5,26 @@ import (
 
 	"rip/internal/app/config"
 	"rip/internal/app/dsn"
-	"rip/internal/app/handler"
-	"rip/internal/app/repository"
+	"rip/internal/app/repositories"
 	"rip/internal/pkg"
 
-	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	router := gin.Default()
-	conf, err := config.NewConfig()
+	config, err := config.NewConfig()
 	if err != nil {
 		logrus.Fatalf("error loading config: %v", err)
 	}
 
-	postgresString := dsn.FromEnv()
-	fmt.Println(postgresString)
+	postgresDsn := dsn.FromEnv()
+	fmt.Println(postgresDsn)
 
-	rep, errRep := repository.New(postgresString)
+	db, errRep := repositories.NewTurbinesDB(postgresDsn)
 	if errRep != nil {
 		logrus.Fatalf("error initializing repository: %v", errRep)
 	}
 
-	hand := handler.NewTurbineHandler(rep)
-
-	application := pkg.NewTurbinesApp(conf, router, hand)
-	application.RunApp()
+	app := &pkg.TurbinesApplication{}
+	app.Run(config, db)
 }

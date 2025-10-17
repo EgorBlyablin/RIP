@@ -3,36 +3,29 @@ package pkg
 import (
 	"fmt"
 
+	"rip/internal/app/api"
 	"rip/internal/app/config"
-	"rip/internal/app/handler"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
-type TurbinesApplication struct {
-	Config  *config.Config
-	Router  *gin.Engine
-	Handler *handler.TurbineHandler
-}
+type TurbinesApplication struct{}
 
-func NewTurbinesApp(c *config.Config, r *gin.Engine, h *handler.TurbineHandler) *TurbinesApplication {
-	return &TurbinesApplication{
-		Config:  c,
-		Router:  r,
-		Handler: h,
-	}
-}
-
-func (a *TurbinesApplication) RunApp() {
+func (app *TurbinesApplication) Run(config *config.Config, db *gorm.DB) {
 	logrus.Info("Server start up")
 
-	a.Handler.RegisterHandler(a.Router)
-	a.Handler.RegisterStatic(a.Router)
+	engine := gin.Default()
+	turbinesApiRouter := engine.Group("/api")
 
-	serverAddress := fmt.Sprintf("%s:%d", a.Config.ServiceHost, a.Config.ServicePort)
-	if err := a.Router.Run(serverAddress); err != nil {
+	turbinesApi := api.NewTurbinesAppApi(config, db)
+	turbinesApi.RegisterEndpoints(turbinesApiRouter)
+
+	serverAddress := fmt.Sprintf("%s:%d", config.Service.Host, config.Service.Port)
+	if err := engine.Run(serverAddress); err != nil {
 		logrus.Fatal(err)
 	}
+
 	logrus.Info("Server down")
 }

@@ -1,2 +1,7 @@
-ServiceHost = "0.0.0.0"
-ServicePort = 8000
+[Service]
+Host = "0.0.0.0"
+Port = 8000
+
+[S3]
+Host = "minio"
+Port = 9000
