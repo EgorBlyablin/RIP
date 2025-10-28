@@ -59,7 +59,7 @@ func (r *GenerationRequestRepository) GetGenerationRequests(userId uint, filter 
 		query = query.Where("formed_at < ?", *filter.FormedAtEnd)
 	}
 
-	if err := query.Find(&generationRequests).Error; err != nil {
+	if err := query.Preload("CreatedBy").Preload("ClosedBy").Preload("TurbineGenerationRequests").Find(&generationRequests).Error; err != nil {
 		log.WithError(err).Error("Failed to get generation requests from DB")
 		return []ds.GenerationRequest{}, err
 	}
@@ -72,7 +72,7 @@ func (r *GenerationRequestRepository) GetGenerationRequest(generationRequestId u
 
 	if err := r.GenerationRequestDB.Where(&ds.GenerationRequest{
 		ID: generationRequestId,
-	}).Where("status != ?", "deleted").Preload("TurbineGenerationRequests.Turbine").First(&generationRequest).Error; err != nil {
+	}).Where("status != ?", "deleted").Preload("CreatedBy").Preload("ClosedBy").Preload("TurbineGenerationRequests.Turbine").First(&generationRequest).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ds.GenerationRequest{}, ErrorGenerationRequestNotFound
 		}
@@ -81,6 +81,15 @@ func (r *GenerationRequestRepository) GetGenerationRequest(generationRequestId u
 			"Generation Request ID": generationRequest,
 		}).Errorf("Failed to get generation request from DB")
 		return ds.GenerationRequest{}, err
+	}
+
+	if len(*generationRequest.TurbineGenerationRequests) > 0 {
+		generationSum := uint64(0)
+		for _, turbine := range *generationRequest.TurbineGenerationRequests {
+			generationSum += *turbine.CalculatedGeneration
+		}
+
+		generationRequest.CalculatedGenerationSum = &generationSum
 	}
 	return generationRequest, nil
 }

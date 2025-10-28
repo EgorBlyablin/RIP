@@ -57,6 +57,12 @@ func (api *GenerationRequestsApi) GetSentGenerationRequests(ctx *gin.Context) {
 		return
 	}
 
+	for i := range generationRequests {
+		grCount := uint(len(*generationRequests[i].TurbineGenerationRequests))
+		generationRequests[i].TurbineGenerationRequestsCount = &grCount
+		generationRequests[i].TurbineGenerationRequests = nil
+	}
+
 	ctx.JSON(http.StatusOK, generationRequests)
 }
 
@@ -83,6 +89,9 @@ func (api *GenerationRequestsApi) GetGenerationRequest(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusForbidden)
 		return
 	}
+
+	grCount := uint(len(*generationRequest.TurbineGenerationRequests))
+	generationRequest.TurbineGenerationRequestsCount = &grCount
 
 	ctx.JSON(http.StatusOK, generationRequest)
 }
