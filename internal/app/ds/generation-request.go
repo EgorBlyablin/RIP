@@ -49,3 +49,8 @@ func (generationRequest GenerationRequest) MarshalJSON() ([]byte, error) {
 type UpdateGenerationRequest struct {
 	PeriodDays *uint `json:"period_days" binding:"omitnil,gt=0,lt=36500"`
 }
+
+type DraftGenerationRequestsBriefInfo struct {
+	GenerationRequestId uint
+	TurbinesCount       uint
+}

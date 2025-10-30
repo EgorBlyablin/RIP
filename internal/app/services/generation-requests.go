@@ -24,11 +24,6 @@ type GenerationRequestsService struct {
 	usersService                 *UsersService
 }
 
-type DraftGenerationRequestsBriefInfo struct {
-	GenerationRequestId uint
-	TurbinesCount       uint
-}
-
 func CalculateTurbineGeneration(avgVelocity float32, height uint16, alpha float32, power uint32, days uint) uint64 {
 	const (
 		optimalVelocity     = 12
@@ -80,18 +75,18 @@ func (service *GenerationRequestsService) CloseGenerationRequest(generationReque
 	return ds.GenerationRequest{}, ErrorGenerationRequestIncorrectStatus
 }
 
-func (service *GenerationRequestsService) GetDraftBriefInfo(userId uint) (DraftGenerationRequestsBriefInfo, error) {
+func (service *GenerationRequestsService) GetDraftBriefInfo(userId uint) (ds.DraftGenerationRequestsBriefInfo, error) {
 	currentDraft, err := service.GenerationRequestsRepository.GetDraftGenerationRequest(userId)
 	if err != nil {
-		return DraftGenerationRequestsBriefInfo{}, err
+		return ds.DraftGenerationRequestsBriefInfo{}, err
 	}
 
 	currentDraftTurbinesCount, err := service.GenerationRequestsRepository.GetGenerationRequestsTurbinesCount(currentDraft.ID)
 	if err != nil {
-		return DraftGenerationRequestsBriefInfo{}, err
+		return ds.DraftGenerationRequestsBriefInfo{}, err
 	}
 
-	return DraftGenerationRequestsBriefInfo{
+	return ds.DraftGenerationRequestsBriefInfo{
 		GenerationRequestId: currentDraft.ID,
 		TurbinesCount:       currentDraftTurbinesCount,
 	}, nil

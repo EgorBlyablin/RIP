@@ -177,7 +177,6 @@ func (api *GenerationRequestsApi) CloseGenerationRequest(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} ds.GenerationRequest "Информация о черновике"
-// @Failure 404 {object} map[string]string "Черновик не найден"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Router /api/generation-requests/draft/ [get]
 func (api *GenerationRequestsApi) GetDraftBriefInfo(ctx *gin.Context) {
@@ -186,7 +185,10 @@ func (api *GenerationRequestsApi) GetDraftBriefInfo(ctx *gin.Context) {
 	generationRequestDraftBriefInfo, err := api.generationRequestsService.GetDraftBriefInfo(userId)
 	if err != nil {
 		if errors.Is(err, repositories.ErrorGenerationRequestNotFound) {
-			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+			ctx.AbortWithStatusJSON(http.StatusOK, ds.DraftGenerationRequestsBriefInfo{
+				GenerationRequestId: 0,
+				TurbinesCount:       0,
+			})
 			return
 		}
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
