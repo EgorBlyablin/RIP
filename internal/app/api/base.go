@@ -1,45 +1,55 @@
 package api
 
 import (
+	"fmt"
 	"rip/internal/app/config"
+	"rip/internal/app/ds"
+	"rip/internal/app/middlewares"
 	"rip/internal/app/repositories"
 	"rip/internal/app/services"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type TurbinesAppApi struct {
-	turbinesAppConfig *config.Config
-	turbinesAppDB     *gorm.DB
+	config *config.Config
+	db     *gorm.DB
 }
 
-func NewTurbinesAppApi(turbinesAppConfig *config.Config, turbinesAppDB *gorm.DB) *TurbinesAppApi {
+func NewTurbinesAppApi(config *config.Config, db *gorm.DB) *TurbinesAppApi {
 	return &TurbinesAppApi{
-		turbinesAppConfig: turbinesAppConfig,
-		turbinesAppDB:     turbinesAppDB,
+		config: config,
+		db:     db,
 	}
 }
 
-func (turbinesAppApi *TurbinesAppApi) RegisterEndpoints(router *gin.RouterGroup) {
-	generationRequestsService := services.NewGenerationRequestsService(turbinesAppApi.turbinesAppDB)
-	generationRequestApi := NewGenerationRequestsApi(generationRequestsService)
-	generationRequestApi.RegisterEndpoints(router.Group("/generation-requests"))
+func (a *TurbinesAppApi) RegisterEndpoints(router *gin.RouterGroup) {
+	userMiddlewares := middlewares.NewUserMiddlewares(a.config.JWT.Token)
 
-	turbinesImagesS3, err := repositories.NewS3Repository(
-		turbinesAppApi.turbinesAppConfig.S3.Host,
-		turbinesAppApi.turbinesAppConfig.S3.Port,
+	generationRequestsService := services.NewGenerationRequestsService(a.db)
+	generationRequestApi := NewGenerationRequestsApi(generationRequestsService)
+	generationRequestApi.RegisterEndpoints(router.Group("/generation-requests"), &userMiddlewares)
+
+	turbinesImagesS3, _ := repositories.NewS3Repository(
+		a.config.S3.Host,
+		a.config.S3.Port,
 		"turbines",
 	)
-	if err != nil {
-		log.WithError(err).Error("Failed to initialize S3 repository for turbines images")
-	}
-	turbinesService := services.NewTurbinesService(turbinesAppApi.turbinesAppDB, turbinesImagesS3)
+	turbinesService := services.NewTurbinesService(a.db, turbinesImagesS3)
 	turbinesApi := NewTurbinesApi(turbinesService)
-	turbinesApi.RegisterEndpoints(router.Group("/turbines"))
+	turbinesApi.RegisterEndpoints(router.Group("/turbines"), &userMiddlewares)
 
-	usersService := services.NewUsersService(turbinesAppApi.turbinesAppDB)
+	usersService := services.NewUsersService(a.db, a.config)
 	usersApi := NewUsersApi(usersService)
-	usersApi.RegisterEndpoints(router.Group("/users"))
+	usersApi.RegisterEndpoints(router.Group("/users"), &userMiddlewares)
+}
+
+func GetUserID(ctx *gin.Context) (uint, error) {
+	userId, exists := ctx.Get(ds.UserIDKey)
+	if !exists {
+		return 0, fmt.Errorf("user claims expected but not found")
+	}
+
+	return userId.(uint), nil
 }

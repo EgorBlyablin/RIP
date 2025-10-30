@@ -8,19 +8,25 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
+
+	_ "rip/docs"
 )
 
 type TurbinesApplication struct{}
 
-func (app *TurbinesApplication) Run(config *config.Config, db *gorm.DB) {
+func (a *TurbinesApplication) Run(config *config.Config, db *gorm.DB) {
 	logrus.Info("Server start up")
 
 	engine := gin.Default()
-	turbinesApiRouter := engine.Group("/api")
+	router := engine.Group("/api")
 
 	turbinesApi := api.NewTurbinesAppApi(config, db)
-	turbinesApi.RegisterEndpoints(turbinesApiRouter)
+	turbinesApi.RegisterEndpoints(router)
+
+	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	serverAddress := fmt.Sprintf("%s:%d", config.Service.Host, config.Service.Port)
 	if err := engine.Run(serverAddress); err != nil {

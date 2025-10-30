@@ -18,7 +18,10 @@ import (
 // @contact.name Егор Бляблин
 // @host localhost:8000
 // @schemes http
-
+// @securityDefinitions.apikey JWT
+// @in header
+// @name Authorization
+// @description Префикс "Bearer" с последующими пробелом и JWT.
 func main() {
 	config, err := config.NewConfig()
 	if err != nil {

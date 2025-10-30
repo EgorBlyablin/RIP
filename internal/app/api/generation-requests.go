@@ -14,27 +14,27 @@ import (
 )
 
 type GenerationRequestsApi struct {
-	generationRequestsService *services.GenerationRequestsService
+	s *services.GenerationRequestsService
 }
 
-func NewGenerationRequestsApi(generationRequestsService *services.GenerationRequestsService) *GenerationRequestsApi {
+func NewGenerationRequestsApi(s *services.GenerationRequestsService) *GenerationRequestsApi {
 	return &GenerationRequestsApi{
-		generationRequestsService: generationRequestsService,
+		s: s,
 	}
 }
 
-func (api *GenerationRequestsApi) RegisterEndpoints(router *gin.RouterGroup) {
-	router.GET("/", api.GetSentGenerationRequests)
-	router.GET("/:generationRequestId", api.GetGenerationRequest)
-	router.PUT("/:generationRequestId/close", api.CloseGenerationRequest)
+func (a *GenerationRequestsApi) RegisterEndpoints(r *gin.RouterGroup, m *middlewares.UserMiddlewares) {
+	r.GET("/", m.WithAuth, a.GetSentGenerationRequests)
+	r.GET("/:generationRequestId", m.WithAuth, a.GetGenerationRequest)
+	r.PUT("/:generationRequestId/close", m.WithModeratorAccess, a.CloseGenerationRequest)
 
-	router.GET("/draft", api.GetDraftBriefInfo)
-	router.POST("/draft/:turbineId", api.AddTurbineToDraft)
-	router.PUT("/draft", api.UpdateDraftGenerationRequest)
-	router.PUT("/draft/:turbineId", api.UpdateTurbineInDraft)
-	router.DELETE("/draft/:turbineId", api.RemoveTurbineFromDraft)
-	router.PUT("/draft/submit", api.SubmitDraftGenerationRequest)
-	router.DELETE("/draft", api.DeleteDraftGenerationRequest)
+	r.GET("/draft", m.WithAuth, a.GetDraftBriefInfo)
+	r.POST("/draft/:turbineId", m.WithAuth, a.AddTurbineToDraft)
+	r.PUT("/draft", m.WithAuth, a.UpdateDraftGenerationRequest)
+	r.PUT("/draft/:turbineId", m.WithAuth, a.UpdateTurbineInDraft)
+	r.DELETE("/draft/:turbineId", m.WithAuth, a.RemoveTurbineFromDraft)
+	r.PUT("/draft/submit", m.WithAuth, a.SubmitDraftGenerationRequest)
+	r.DELETE("/draft", m.WithAuth, a.DeleteDraftGenerationRequest)
 }
 
 // @Summary Список заявок с фильтрацией
@@ -46,9 +46,14 @@ func (api *GenerationRequestsApi) RegisterEndpoints(router *gin.RouterGroup) {
 // @Success 200 {array} ds.GenerationRequest "Список заявок"
 // @Failure 400 {object} map[string]string "Некорректный запрос"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security JWT
 // @Router /api/generation-requests/ [get]
-func (api *GenerationRequestsApi) GetSentGenerationRequests(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *GenerationRequestsApi) GetSentGenerationRequests(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
 	generationRequestsFilter := repositories.GenerationRequestsFilter{}
 	if err := ctx.BindQuery(&generationRequestsFilter); err != nil {
@@ -61,7 +66,7 @@ func (api *GenerationRequestsApi) GetSentGenerationRequests(ctx *gin.Context) {
 		return
 	}
 
-	generationRequests, err := api.generationRequestsService.GetGenerationRequests(userId, generationRequestsFilter)
+	generationRequests, err := a.s.GetGenerationRequests(userId, generationRequestsFilter)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -86,9 +91,14 @@ func (api *GenerationRequestsApi) GetSentGenerationRequests(ctx *gin.Context) {
 // @Failure 403 {object} map[string]string "Доступ запрещен"
 // @Failure 404 {object} map[string]string "Заявка не найдена"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security JWT
 // @Router /api/generation-requests/{generationRequestId}/ [get]
-func (api *GenerationRequestsApi) GetGenerationRequest(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *GenerationRequestsApi) GetGenerationRequest(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
 	generationRequestsId, err := strconv.Atoi(ctx.Param("generationRequestId"))
 	if err != nil {
@@ -96,7 +106,7 @@ func (api *GenerationRequestsApi) GetGenerationRequest(ctx *gin.Context) {
 		return
 	}
 
-	generationRequest, err := api.generationRequestsService.GetGenerationRequest(uint(generationRequestsId))
+	generationRequest, err := a.s.GetGenerationRequest(uint(generationRequestsId))
 	if err != nil {
 		if errors.Is(err, repositories.ErrorGenerationRequestNotFound) {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})
@@ -130,9 +140,14 @@ func (api *GenerationRequestsApi) GetGenerationRequest(ctx *gin.Context) {
 // @Failure 404 {object} map[string]string "Заявка не найдена"
 // @Failure 409 {object} map[string]string "Заявка не может быть закрыта"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security JWT
 // @Router /api/generation-requests/{generationRequestId}/close/ [put]
-func (api *GenerationRequestsApi) CloseGenerationRequest(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *GenerationRequestsApi) CloseGenerationRequest(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
 	generationRequestsId, err := strconv.Atoi(ctx.Param("generationRequestId"))
 	if err != nil {
@@ -149,7 +164,7 @@ func (api *GenerationRequestsApi) CloseGenerationRequest(ctx *gin.Context) {
 		return
 	}
 
-	closedGenerationRequest, err := api.generationRequestsService.CloseGenerationRequest(uint(generationRequestsId), userId, closeGenerationRequest.Status)
+	closedGenerationRequest, err := a.s.CloseGenerationRequest(uint(generationRequestsId), userId, closeGenerationRequest.Status)
 	if err != nil {
 		switch err {
 		case services.ErrorGenerationRequestIncorrectStatus:
@@ -178,11 +193,16 @@ func (api *GenerationRequestsApi) CloseGenerationRequest(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {object} ds.GenerationRequest "Информация о черновике"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security JWT
 // @Router /api/generation-requests/draft/ [get]
-func (api *GenerationRequestsApi) GetDraftBriefInfo(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *GenerationRequestsApi) GetDraftBriefInfo(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
-	generationRequestDraftBriefInfo, err := api.generationRequestsService.GetDraftBriefInfo(userId)
+	generationRequestDraftBriefInfo, err := a.s.GetDraftBriefInfo(userId)
 	if err != nil {
 		if errors.Is(err, repositories.ErrorGenerationRequestNotFound) {
 			ctx.AbortWithStatusJSON(http.StatusOK, ds.DraftGenerationRequestsBriefInfo{
@@ -208,9 +228,14 @@ func (api *GenerationRequestsApi) GetDraftBriefInfo(ctx *gin.Context) {
 // @Failure 403 {object} map[string]string "Доступ запрещен"
 // @Failure 404 {object} map[string]string "Черновик не найден"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security JWT
 // @Router /api/generation-requests/draft/ [put]
-func (api *GenerationRequestsApi) UpdateDraftGenerationRequest(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *GenerationRequestsApi) UpdateDraftGenerationRequest(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
 	generationRequestUpdates := ds.UpdateGenerationRequest{}
 	if err := ctx.Bind(&generationRequestUpdates); err != nil {
@@ -218,7 +243,7 @@ func (api *GenerationRequestsApi) UpdateDraftGenerationRequest(ctx *gin.Context)
 		return
 	}
 
-	updatedGenerationRequest, err := api.generationRequestsService.UpdateDraftGenerationRequest(userId, generationRequestUpdates)
+	updatedGenerationRequest, err := a.s.UpdateDraftGenerationRequest(userId, generationRequestUpdates)
 	if err != nil {
 		if errors.Is(err, services.ErrorUserHasNoAccess) {
 			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": err.Error()})
@@ -245,9 +270,14 @@ func (api *GenerationRequestsApi) UpdateDraftGenerationRequest(ctx *gin.Context)
 // @Failure 400 {object} map[string]string "Некорректный запрос"
 // @Failure 304 {object} map[string]string "Турбина уже в черновике"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security JWT
 // @Router /api/generation-requests/draft/{turbineId}/ [post]
-func (api *GenerationRequestsApi) AddTurbineToDraft(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *GenerationRequestsApi) AddTurbineToDraft(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
 	turbinesId, err := strconv.Atoi(ctx.Param("turbineId"))
 	if err != nil {
@@ -255,7 +285,7 @@ func (api *GenerationRequestsApi) AddTurbineToDraft(ctx *gin.Context) {
 		return
 	}
 
-	err = api.generationRequestsService.AddTurbineToDraft(userId, uint(turbinesId))
+	err = a.s.AddTurbineToDraft(userId, uint(turbinesId))
 	if err != nil {
 		if errors.Is(err, repositories.ErrorGenerationRequestTurbineAlreadyInDraft) {
 			ctx.AbortWithStatusJSON(http.StatusNotModified, gin.H{"message": err.Error()})
@@ -279,9 +309,14 @@ func (api *GenerationRequestsApi) AddTurbineToDraft(ctx *gin.Context) {
 // @Failure 400 {object} map[string]string "Некорректный запрос"
 // @Failure 404 {object} map[string]string "Турбина не найдена в черновике"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security JWT
 // @Router /api/generation-requests/draft/{turbineId}/ [put]
-func (api *GenerationRequestsApi) UpdateTurbineInDraft(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *GenerationRequestsApi) UpdateTurbineInDraft(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
 	turbineId, err := strconv.Atoi(ctx.Param("turbineId"))
 	if err != nil {
@@ -295,7 +330,7 @@ func (api *GenerationRequestsApi) UpdateTurbineInDraft(ctx *gin.Context) {
 		return
 	}
 
-	err = api.generationRequestsService.UpdateTurbineInDraft(userId, uint(turbineId), turbineUpdates)
+	err = a.s.UpdateTurbineInDraft(userId, uint(turbineId), turbineUpdates)
 	if errors.Is(err, repositories.ErrorGenerationRequestTurbineNotFound) {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
@@ -318,9 +353,14 @@ func (api *GenerationRequestsApi) UpdateTurbineInDraft(ctx *gin.Context) {
 // @Failure 400 {object} map[string]string "Некорректный запрос"
 // @Failure 404 {object} map[string]string "Турбина или черновик не найден"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security JWT
 // @Router /api/generation-requests/draft/{turbineId}/ [delete]
-func (api *GenerationRequestsApi) RemoveTurbineFromDraft(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *GenerationRequestsApi) RemoveTurbineFromDraft(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
 	turbineId, err := strconv.Atoi(ctx.Param("turbineId"))
 	if err != nil {
@@ -328,7 +368,7 @@ func (api *GenerationRequestsApi) RemoveTurbineFromDraft(ctx *gin.Context) {
 		return
 	}
 
-	err = api.generationRequestsService.RemoveTurbineFromDraft(userId, uint(turbineId))
+	err = a.s.RemoveTurbineFromDraft(userId, uint(turbineId))
 	if errors.Is(err, repositories.ErrorGenerationRequestTurbineNotFound) {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
@@ -353,11 +393,16 @@ func (api *GenerationRequestsApi) RemoveTurbineFromDraft(ctx *gin.Context) {
 // @Success 200 {object} map[string]string "Черновик отправлен"
 // @Failure 404 {object} map[string]string "Черновик не найден"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security JWT
 // @Router /api/generation-requests/draft/submit/ [put]
-func (api *GenerationRequestsApi) SubmitDraftGenerationRequest(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *GenerationRequestsApi) SubmitDraftGenerationRequest(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
-	err := api.generationRequestsService.SubmitDraftGenerationRequest(userId)
+	err = a.s.SubmitDraftGenerationRequest(userId)
 	if errors.Is(err, repositories.ErrorGenerationRequestNotFound) {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
@@ -378,11 +423,16 @@ func (api *GenerationRequestsApi) SubmitDraftGenerationRequest(ctx *gin.Context)
 // @Success 204 "Черновик удален"
 // @Failure 404 {object} map[string]string "Черновик не найден"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security JWT
 // @Router /api/generation-requests/draft/ [delete]
-func (api *GenerationRequestsApi) DeleteDraftGenerationRequest(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *GenerationRequestsApi) DeleteDraftGenerationRequest(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
-	err := api.generationRequestsService.DeleteDraftGenerationRequest(userId)
+	err = a.s.DeleteDraftGenerationRequest(userId)
 	if err != nil {
 		if errors.Is(err, repositories.ErrorGenerationRequestNotFound) {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})

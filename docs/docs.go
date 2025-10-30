@@ -22,6 +22,11 @@ const docTemplate = `{
     "paths": {
         "/api/generation-requests/": {
             "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Возвращает список заявок пользователя с фильтрацией по дате и статусу (кроме удаленных и черновиков)",
                 "consumes": [
                     "application/json"
@@ -88,6 +93,11 @@ const docTemplate = `{
         },
         "/api/generation-requests/draft/": {
             "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Возвращает информацию о черновике заявки текущего пользователя",
                 "consumes": [
                     "application/json"
@@ -106,15 +116,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/ds.GenerationRequest"
                         }
                     },
-                    "404": {
-                        "description": "Черновик не найден",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "500": {
                         "description": "Внутренняя ошибка сервера",
                         "schema": {
@@ -127,6 +128,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Обновляет поля черновика заявки текущего пользователя",
                 "consumes": [
                     "application/json"
@@ -195,6 +201,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Удаляет черновик заявки текущего пользователя",
                 "consumes": [
                     "application/json"
@@ -233,6 +244,11 @@ const docTemplate = `{
         },
         "/api/generation-requests/draft/submit/": {
             "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Формирует черновик заявки и отправляет на рассмотрение",
                 "consumes": [
                     "application/json"
@@ -277,6 +293,11 @@ const docTemplate = `{
         },
         "/api/generation-requests/draft/{turbineId}/": {
             "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Обновляет параметры (avg_velocity, alpha) турбины в черновике",
                 "consumes": [
                     "application/json"
@@ -346,6 +367,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Добавляет турбину в черновик заявки текущего пользователя",
                 "consumes": [
                     "application/json"
@@ -406,6 +432,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Удаляет турбину из черновика заявки текущего пользователя",
                 "consumes": [
                     "application/json"
@@ -468,6 +499,11 @@ const docTemplate = `{
         },
         "/api/generation-requests/{generationRequestId}/": {
             "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Возвращает информацию о конкретной заявке с деталями и связанными турбинами",
                 "consumes": [
                     "application/json"
@@ -527,6 +563,11 @@ const docTemplate = `{
         },
         "/api/generation-requests/{generationRequestId}/close/": {
             "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Модератор завершает или отклоняет заявку (только для модераторов)",
                 "consumes": [
                     "application/json"
@@ -654,6 +695,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Создает новую турбину без изображения",
                 "consumes": [
                     "application/json"
@@ -763,6 +809,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Обновляет информацию о турбине по ID",
                 "consumes": [
                     "application/json"
@@ -838,6 +889,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Удаляет турбину по ID",
                 "consumes": [
                     "application/json"
@@ -894,6 +950,11 @@ const docTemplate = `{
         },
         "/api/turbines/{turbineId}/upload-image/": {
             "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Добавляет или обновляет изображение для турбины",
                 "consumes": [
                     "multipart/form-data"
@@ -969,6 +1030,11 @@ const docTemplate = `{
         },
         "/api/users/": {
             "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Возвращает информацию о текущем аутентифицированном пользователе",
                 "consumes": [
                     "application/json"
@@ -999,6 +1065,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Обновляет информацию о текущем аутентифицированном пользователе",
                 "consumes": [
                     "application/json"
@@ -1136,26 +1207,28 @@ const docTemplate = `{
                     "200": {
                         "description": "Сообщение об успешной аутентификации",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/api.Login.Res"
                         }
                     },
                     "400": {
-                        "description": "Некорректные учетные данные",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                        "description": "Некорректные учетные данные"
+                    },
+                    "403": {
+                        "description": "Доступ запрещен"
+                    },
+                    "500": {
+                        "description": "Ошибка сервера"
                     }
                 }
             }
         },
         "/api/users/logout/": {
             "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Завершает сессию текущего аутентифицированного пользователя",
                 "consumes": [
                     "application/json"
@@ -1194,6 +1267,20 @@ const docTemplate = `{
                         "completed",
                         "rejected"
                     ]
+                }
+            }
+        },
+        "api.Login.Res": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expires_in": {
+                    "type": "integer"
+                },
+                "token_type": {
+                    "type": "string"
                 }
             }
         },
@@ -1407,6 +1494,14 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "JWT": {
+            "description": "Префикс \"Bearer\" с последующими пробелом и JWT.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

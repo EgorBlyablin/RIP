@@ -18,3 +18,6 @@ type UpdateUser struct {
 	Login    *string `json:"login" binding:"omitnil,min=3,max=30"`
 	Password *string `json:"password" binding:"omitnil,min=8,max=100"`
 }
+
+const UserIDKey = "user_id"
+const UserIsModeratorKey = "user_is_moderator"

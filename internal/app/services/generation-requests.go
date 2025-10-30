@@ -20,8 +20,7 @@ var (
 )
 
 type GenerationRequestsService struct {
-	GenerationRequestsRepository *repositories.GenerationRequestRepository
-	usersService                 *UsersService
+	r *repositories.GenerationRequestRepository
 }
 
 func CalculateTurbineGeneration(avgVelocity float32, height uint16, alpha float32, power uint32, days uint) uint64 {
@@ -41,47 +40,38 @@ func CalculateTurbineGeneration(avgVelocity float32, height uint16, alpha float3
 	return uint64(generation)
 }
 
-func NewGenerationRequestsService(turbinesAppDB *gorm.DB) *GenerationRequestsService {
+func NewGenerationRequestsService(db *gorm.DB) *GenerationRequestsService {
 	return &GenerationRequestsService{
-		GenerationRequestsRepository: repositories.NewGenerationRequestRepository(turbinesAppDB),
-		usersService:                 NewUsersService(turbinesAppDB),
+		r: repositories.NewGenerationRequestRepository(db),
 	}
 }
 
-func (service *GenerationRequestsService) GetGenerationRequests(userId uint, filter repositories.GenerationRequestsFilter) ([]ds.GenerationRequest, error) {
-	return service.GenerationRequestsRepository.GetGenerationRequests(userId, filter)
+func (s *GenerationRequestsService) GetGenerationRequests(userId uint, filter repositories.GenerationRequestsFilter) ([]ds.GenerationRequest, error) {
+	return s.r.GetGenerationRequests(userId, filter)
 }
 
-func (service *GenerationRequestsService) GetGenerationRequest(generationRequestId uint) (ds.GenerationRequest, error) {
-	return service.GenerationRequestsRepository.GetGenerationRequest(generationRequestId)
+func (s *GenerationRequestsService) GetGenerationRequest(generationRequestId uint) (ds.GenerationRequest, error) {
+	return s.r.GetGenerationRequest(generationRequestId)
 }
 
-func (service *GenerationRequestsService) CloseGenerationRequest(generationRequestId uint, userId uint, status string) (ds.GenerationRequest, error) {
-	usersService := NewUsersService(service.GenerationRequestsRepository.GenerationRequestDB)
-	isModerator, err := usersService.CheckIsModerator(userId)
-	if err != nil {
-		return ds.GenerationRequest{}, err
-	} else if !isModerator {
-		return ds.GenerationRequest{}, ErrorUserHasNoAccess
-	}
-
+func (s *GenerationRequestsService) CloseGenerationRequest(generationRequestId uint, userId uint, status string) (ds.GenerationRequest, error) {
 	switch status {
 	case "completed":
-		return service.GenerationRequestsRepository.CompleteGenerationRequest(generationRequestId, userId, CalculateTurbineGeneration)
+		return s.r.CompleteGenerationRequest(generationRequestId, userId, CalculateTurbineGeneration)
 	case "rejected":
-		return service.GenerationRequestsRepository.RejectGenerationRequest(generationRequestId, userId)
+		return s.r.RejectGenerationRequest(generationRequestId, userId)
 	}
 
 	return ds.GenerationRequest{}, ErrorGenerationRequestIncorrectStatus
 }
 
-func (service *GenerationRequestsService) GetDraftBriefInfo(userId uint) (ds.DraftGenerationRequestsBriefInfo, error) {
-	currentDraft, err := service.GenerationRequestsRepository.GetDraftGenerationRequest(userId)
+func (s *GenerationRequestsService) GetDraftBriefInfo(userId uint) (ds.DraftGenerationRequestsBriefInfo, error) {
+	currentDraft, err := s.r.GetDraftGenerationRequest(userId)
 	if err != nil {
 		return ds.DraftGenerationRequestsBriefInfo{}, err
 	}
 
-	currentDraftTurbinesCount, err := service.GenerationRequestsRepository.GetGenerationRequestsTurbinesCount(currentDraft.ID)
+	currentDraftTurbinesCount, err := s.r.GetGenerationRequestsTurbinesCount(currentDraft.ID)
 	if err != nil {
 		return ds.DraftGenerationRequestsBriefInfo{}, err
 	}
@@ -92,46 +82,46 @@ func (service *GenerationRequestsService) GetDraftBriefInfo(userId uint) (ds.Dra
 	}, nil
 }
 
-func (service *GenerationRequestsService) UpdateDraftGenerationRequest(userId uint, generationRequestUpdates ds.UpdateGenerationRequest) (ds.GenerationRequest, error) {
-	return service.GenerationRequestsRepository.UpdateDraftGenerationRequest(userId, generationRequestUpdates)
+func (s *GenerationRequestsService) UpdateDraftGenerationRequest(userId uint, generationRequestUpdates ds.UpdateGenerationRequest) (ds.GenerationRequest, error) {
+	return s.r.UpdateDraftGenerationRequest(userId, generationRequestUpdates)
 }
 
-func (service *GenerationRequestsService) AddTurbineToDraft(userId, turbineId uint) error {
-	draftGenerationRequest, err := service.GenerationRequestsRepository.GetOrCreateDraftGenerationRequest(userId)
+func (s *GenerationRequestsService) AddTurbineToDraft(userId, turbineId uint) error {
+	draftGenerationRequest, err := s.r.GetOrCreateDraftGenerationRequest(userId)
 	if err != nil {
 		return err
 	}
 
-	return service.GenerationRequestsRepository.AddTurbineToDraftGenerationRequest(draftGenerationRequest.ID, turbineId)
+	return s.r.AddTurbineToDraftGenerationRequest(draftGenerationRequest.ID, turbineId)
 }
 
-func (service *GenerationRequestsService) UpdateTurbineInDraft(userId, turbineId uint, updates ds.UpdateTurbineGenerationRequest) error {
-	currentDraft, err := service.GenerationRequestsRepository.GetDraftGenerationRequest(userId)
+func (s *GenerationRequestsService) UpdateTurbineInDraft(userId, turbineId uint, updates ds.UpdateTurbineGenerationRequest) error {
+	currentDraft, err := s.r.GetDraftGenerationRequest(userId)
 	if err != nil {
 		return err
 	}
 
-	return service.GenerationRequestsRepository.UpdateTurbineInDraft(currentDraft.ID, turbineId, updates)
+	return s.r.UpdateTurbineInDraft(currentDraft.ID, turbineId, updates)
 }
 
-func (service *GenerationRequestsService) RemoveTurbineFromDraft(userId, turbineId uint) error {
-	currentDraft, err := service.GenerationRequestsRepository.GetDraftGenerationRequest(userId)
+func (s *GenerationRequestsService) RemoveTurbineFromDraft(userId, turbineId uint) error {
+	currentDraft, err := s.r.GetDraftGenerationRequest(userId)
 	if err != nil {
 		return err
 	}
 
-	return service.GenerationRequestsRepository.RemoveTurbineFromDraftGenerationRequest(currentDraft.ID, turbineId)
+	return s.r.RemoveTurbineFromDraftGenerationRequest(currentDraft.ID, turbineId)
 }
 
-func (service *GenerationRequestsService) SubmitDraftGenerationRequest(userId uint) error {
-	return service.GenerationRequestsRepository.SubmitDraftGenerationRequest(userId)
+func (s *GenerationRequestsService) SubmitDraftGenerationRequest(userId uint) error {
+	return s.r.SubmitDraftGenerationRequest(userId)
 }
 
-func (service *GenerationRequestsService) DeleteDraftGenerationRequest(userId uint) error {
-	currentDraft, err := service.GenerationRequestsRepository.GetDraftGenerationRequest(userId)
+func (s *GenerationRequestsService) DeleteDraftGenerationRequest(userId uint) error {
+	currentDraft, err := s.r.GetDraftGenerationRequest(userId)
 	if err != nil {
 		return err
 	}
 
-	return service.GenerationRequestsRepository.DeleteGenerationRequest(currentDraft.ID)
+	return s.r.DeleteGenerationRequest(currentDraft.ID)
 }

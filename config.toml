@@ -5,3 +5,8 @@ Port = 8000
 [S3]
 Host = "minio"
 Port = 9000
+
+[JWT]
+Token = "turbines-secret-token"
+SigningMethod = "HS256"
+ExpiresIn = "24h"

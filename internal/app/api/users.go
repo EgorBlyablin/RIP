@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"rip/internal/app/ds"
 	"rip/internal/app/middlewares"
@@ -12,21 +13,21 @@ import (
 )
 
 type UsersApi struct {
-	usersService *services.UsersService
+	s *services.UsersService
 }
 
-func NewUsersApi(usersService *services.UsersService) *UsersApi {
+func NewUsersApi(service *services.UsersService) *UsersApi {
 	return &UsersApi{
-		usersService: usersService,
+		s: service,
 	}
 }
 
-func (api *UsersApi) RegisterEndpoints(router *gin.RouterGroup) {
-	router.POST("/", api.RegisterUser)
-	router.GET("/", api.GetCurrentUser)
-	router.PUT("/", api.UpdateCurrentUser)
-	router.POST("/login", api.Login)
-	router.POST("/logout", api.Logout)
+func (a *UsersApi) RegisterEndpoints(r *gin.RouterGroup, m *middlewares.UserMiddlewares) {
+	r.POST("/", a.RegisterUser)
+	r.GET("/", m.WithAuth, a.GetCurrentUser)
+	r.PUT("/", m.WithAuth, a.UpdateCurrentUser)
+	r.POST("/login", a.Login)
+	r.POST("/logout", a.Logout)
 }
 
 // @Summary Регистрация нового пользователя
@@ -39,14 +40,14 @@ func (api *UsersApi) RegisterEndpoints(router *gin.RouterGroup) {
 // @Failure 400 {object} map[string]string "Некорректный запрос"
 // @Failure 409 {object} map[string]string "Логин уже занят"
 // @Router /api/users/ [post]
-func (api *UsersApi) RegisterUser(ctx *gin.Context) {
+func (a *UsersApi) RegisterUser(ctx *gin.Context) {
 	user := ds.CreateUser{}
 	if err := ctx.Bind(&user); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	createdUser, err := api.usersService.RegisterUser(user)
+	createdUser, err := a.s.RegisterUser(user)
 	if err != nil {
 		if errors.Is(err, repositories.ErrorLoginIsTaken) {
 			ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{"message": err.Error()})
@@ -66,11 +67,16 @@ func (api *UsersApi) RegisterUser(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {object} ds.User "Информация о пользователе"
 // @Failure 404 {object} map[string]string "Пользователь не найден"
+// @Security JWT
 // @Router /api/users/ [get]
-func (api *UsersApi) GetCurrentUser(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *UsersApi) GetCurrentUser(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
-	user, err := api.usersService.GetUser(userId)
+	user, err := a.s.GetUser(userId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
@@ -88,9 +94,14 @@ func (api *UsersApi) GetCurrentUser(ctx *gin.Context) {
 // @Failure 400 {object} map[string]string "Некорректный запрос"
 // @Failure 404 {object} map[string]string "Пользователь не найден"
 // @Failure 409 {object} map[string]string "Логин уже занят"
+// @Security JWT
 // @Router /api/users/ [put]
-func (api *UsersApi) UpdateCurrentUser(ctx *gin.Context) {
-	userId := middlewares.GetUserId()
+func (a *UsersApi) UpdateCurrentUser(ctx *gin.Context) {
+	userId, err := GetUserID(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		return
+	}
 
 	user := ds.UpdateUser{}
 	if err := ctx.Bind(&user); err != nil {
@@ -98,7 +109,7 @@ func (api *UsersApi) UpdateCurrentUser(ctx *gin.Context) {
 		return
 	}
 
-	updatedUser, err := api.usersService.UpdateUser(userId, user)
+	updatedUser, err := a.s.UpdateUser(userId, user)
 	if err != nil {
 		if errors.Is(err, repositories.ErrorLoginIsTaken) {
 			ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{"message": err.Error()})
@@ -117,11 +128,44 @@ func (api *UsersApi) UpdateCurrentUser(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param credentials body ds.CreateUser true "Учетные данные пользователя (логин и пароль)"
-// @Success 200 {object} map[string]string "Сообщение об успешной аутентификации"
-// @Failure 400 {object} map[string]string "Некорректные учетные данные"
+// @Success 200 {object} api.Login.Res "Сообщение об успешной аутентификации"
+// @Failure 400 "Некорректные учетные данные"
+// @Failure 403 "Доступ запрещен"
+// @Failure 500 "Ошибка сервера"
 // @Router /api/users/login/ [post]
-func (api *UsersApi) Login(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"message": "Logged in successfully"})
+func (a *UsersApi) Login(ctx *gin.Context) {
+	type Req struct {
+		Login    string `json:"login"`
+		Password string `json:"password"`
+	}
+
+	type Res struct {
+		ExpiresIn   uint   `json:"expires_in"`
+		AccessToken string `json:"access_token"`
+		TokenType   string `json:"token_type"`
+	}
+
+	req := &Req{}
+	if err := ctx.Bind(&req); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	jwt, err := a.s.Authorize(req.Login, req.Password)
+	if err != nil {
+		if errors.Is(err, repositories.ErrorUserNotFound) || errors.Is(err, services.ErrorUserCredentialsIncorrect) {
+			ctx.AbortWithError(http.StatusForbidden, fmt.Errorf("cant create str token"))
+		} else {
+			ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("cant create str token"))
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, Res{
+		ExpiresIn:   uint(a.s.Config.JWT.ExpiresIn.Seconds()),
+		AccessToken: jwt,
+		TokenType:   "Bearer",
+	})
 }
 
 // @Summary Деавторизация пользователя
@@ -130,7 +174,8 @@ func (api *UsersApi) Login(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} map[string]string "Сообщение об успешной деавторизации"
+// @Security JWT
 // @Router /api/users/logout/ [post]
-func (api *UsersApi) Logout(ctx *gin.Context) {
+func (a *UsersApi) Logout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 }

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -14,6 +16,12 @@ type Config struct {
 	S3 struct {
 		Host string
 		Port int
+	}
+
+	JWT struct {
+		Token         string
+		SigningMethod string
+		ExpiresIn     time.Duration
 	}
 }
 

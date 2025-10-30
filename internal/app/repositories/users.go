@@ -52,6 +52,20 @@ func (r *UsersRepository) GetUserByID(userId uint) (ds.User, error) {
 	return user, nil
 }
 
+func (r *UsersRepository) GetUserByLogin(login string) (ds.User, error) {
+	user := ds.User{}
+
+	err := r.usersDB.Where(&ds.User{Login: login}).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ds.User{}, ErrorUserNotFound
+		}
+		return ds.User{}, err
+	}
+
+	return user, nil
+}
+
 func (r *UsersRepository) CreateUser(user ds.CreateUser) (ds.User, error) {
 	var newUser = ds.User{
 		Login:    user.Login,
