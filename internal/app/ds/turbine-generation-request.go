@@ -15,5 +15,5 @@ type TurbineGenerationRequest struct {
 type UpdateTurbineGenerationRequest struct {
 	AvgVelocity          *float32 `json:"avg_velocity" binding:"omitnil,gt=0"`
 	Alpha                *float32 `json:"alpha" binding:"omitnil,gt=0"`
-	CalculatedGeneration *uint64
+	CalculatedGeneration *uint64  `json:"-"`
 }

@@ -37,6 +37,16 @@ func (api *GenerationRequestsApi) RegisterEndpoints(router *gin.RouterGroup) {
 	router.DELETE("/draft", api.DeleteDraftGenerationRequest)
 }
 
+// @Summary Список заявок с фильтрацией
+// @Description Возвращает список заявок пользователя с фильтрацией по дате и статусу (кроме удаленных и черновиков)
+// @Tags Заявки расчета выработки
+// @Accept json
+// @Produce json
+// @Param filter path repositories.GenerationRequestsFilter false "Фильтр заявок"
+// @Success 200 {array} ds.GenerationRequest "Список заявок"
+// @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/generation-requests/ [get]
 func (api *GenerationRequestsApi) GetSentGenerationRequests(ctx *gin.Context) {
 	userId := middlewares.GetUserId()
 
@@ -66,6 +76,17 @@ func (api *GenerationRequestsApi) GetSentGenerationRequests(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, generationRequests)
 }
 
+// @Summary Получение информации о заявке
+// @Description Возвращает информацию о конкретной заявке с деталями и связанными турбинами
+// @Tags Заявки расчета выработки
+// @Accept json
+// @Produce json
+// @Param generationRequestId path int true "ID заявки"
+// @Success 200 {object} ds.GenerationRequest "Информация о заявке"
+// @Failure 403 {object} map[string]string "Доступ запрещен"
+// @Failure 404 {object} map[string]string "Заявка не найдена"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/generation-requests/{generationRequestId}/ [get]
 func (api *GenerationRequestsApi) GetGenerationRequest(ctx *gin.Context) {
 	userId := middlewares.GetUserId()
 
@@ -96,6 +117,20 @@ func (api *GenerationRequestsApi) GetGenerationRequest(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, generationRequest)
 }
 
+// @Summary Завершение/отклонение заявки модератором
+// @Description Модератор завершает или отклоняет заявку (только для модераторов)
+// @Tags Заявки расчета выработки
+// @Accept json
+// @Produce json
+// @Param generationRequestId path int true "ID заявки"
+// @Param request body api.CloseGenerationRequest.req true "Статус: completed или rejected"
+// @Success 200 {object} ds.GenerationRequest "Обновленная заявка"
+// @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 403 {object} map[string]string "Доступ запрещен"
+// @Failure 404 {object} map[string]string "Заявка не найдена"
+// @Failure 409 {object} map[string]string "Заявка не может быть закрыта"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/generation-requests/{generationRequestId}/close/ [put]
 func (api *GenerationRequestsApi) CloseGenerationRequest(ctx *gin.Context) {
 	userId := middlewares.GetUserId()
 
@@ -136,6 +171,15 @@ func (api *GenerationRequestsApi) CloseGenerationRequest(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, closedGenerationRequest)
 }
 
+// @Summary Получение информации о черновике заявки
+// @Description Возвращает информацию о черновике заявки текущего пользователя
+// @Tags Заявки расчета выработки
+// @Accept json
+// @Produce json
+// @Success 200 {object} ds.GenerationRequest "Информация о черновике"
+// @Failure 404 {object} map[string]string "Черновик не найден"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/generation-requests/draft/ [get]
 func (api *GenerationRequestsApi) GetDraftBriefInfo(ctx *gin.Context) {
 	userId := middlewares.GetUserId()
 
@@ -151,6 +195,18 @@ func (api *GenerationRequestsApi) GetDraftBriefInfo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, generationRequestDraftBriefInfo)
 }
 
+// @Summary Обновление черновика заявки
+// @Description Обновляет поля черновика заявки текущего пользователя
+// @Tags Заявки расчета выработки
+// @Accept json
+// @Produce json
+// @Param request body ds.UpdateGenerationRequest true "Данные для обновления"
+// @Success 200 {object} ds.GenerationRequest "Обновленный черновик"
+// @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 403 {object} map[string]string "Доступ запрещен"
+// @Failure 404 {object} map[string]string "Черновик не найден"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/generation-requests/draft/ [put]
 func (api *GenerationRequestsApi) UpdateDraftGenerationRequest(ctx *gin.Context) {
 	userId := middlewares.GetUserId()
 
@@ -177,6 +233,17 @@ func (api *GenerationRequestsApi) UpdateDraftGenerationRequest(ctx *gin.Context)
 	ctx.JSON(http.StatusOK, updatedGenerationRequest)
 }
 
+// @Summary Добавление турбины в черновик
+// @Description Добавляет турбину в черновик заявки текущего пользователя
+// @Tags Заявки расчета выработки
+// @Accept json
+// @Produce json
+// @Param turbineId path int true "ID турбины"
+// @Success 200 {object} map[string]string "Турбина добавлена"
+// @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 304 {object} map[string]string "Турбина уже в черновике"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/generation-requests/draft/{turbineId}/ [post]
 func (api *GenerationRequestsApi) AddTurbineToDraft(ctx *gin.Context) {
 	userId := middlewares.GetUserId()
 
@@ -199,6 +266,18 @@ func (api *GenerationRequestsApi) AddTurbineToDraft(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// @Summary Обновление параметров турбины в черновике
+// @Description Обновляет параметры (avg_velocity, alpha) турбины в черновике
+// @Tags Заявки расчета выработки
+// @Accept json
+// @Produce json
+// @Param turbineId path int true "ID турбины"
+// @Param updates body ds.UpdateTurbineGenerationRequest true "Параметры для обновления"
+// @Success 200 {object} map[string]string "Параметры обновлены"
+// @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 404 {object} map[string]string "Турбина не найдена в черновике"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/generation-requests/draft/{turbineId}/ [put]
 func (api *GenerationRequestsApi) UpdateTurbineInDraft(ctx *gin.Context) {
 	userId := middlewares.GetUserId()
 
@@ -227,6 +306,17 @@ func (api *GenerationRequestsApi) UpdateTurbineInDraft(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// @Summary Удаление турбины из черновика
+// @Description Удаляет турбину из черновика заявки текущего пользователя
+// @Tags Заявки расчета выработки
+// @Accept json
+// @Produce json
+// @Param turbineId path int true "ID турбины"
+// @Success 200 {object} map[string]string "Турбина удалена"
+// @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 404 {object} map[string]string "Турбина или черновик не найден"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/generation-requests/draft/{turbineId}/ [delete]
 func (api *GenerationRequestsApi) RemoveTurbineFromDraft(ctx *gin.Context) {
 	userId := middlewares.GetUserId()
 
@@ -253,6 +343,15 @@ func (api *GenerationRequestsApi) RemoveTurbineFromDraft(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+// @Summary Отправка черновика заявки
+// @Description Формирует черновик заявки и отправляет на рассмотрение
+// @Tags Заявки расчета выработки
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]string "Черновик отправлен"
+// @Failure 404 {object} map[string]string "Черновик не найден"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/generation-requests/draft/submit/ [put]
 func (api *GenerationRequestsApi) SubmitDraftGenerationRequest(ctx *gin.Context) {
 	userId := middlewares.GetUserId()
 
@@ -269,6 +368,15 @@ func (api *GenerationRequestsApi) SubmitDraftGenerationRequest(ctx *gin.Context)
 	ctx.Status(http.StatusOK)
 }
 
+// @Summary Удаление черновика заявки
+// @Description Удаляет черновик заявки текущего пользователя
+// @Tags Заявки расчета выработки
+// @Accept json
+// @Produce json
+// @Success 204 "Черновик удален"
+// @Failure 404 {object} map[string]string "Черновик не найден"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/generation-requests/draft/ [delete]
 func (api *GenerationRequestsApi) DeleteDraftGenerationRequest(ctx *gin.Context) {
 	userId := middlewares.GetUserId()
 

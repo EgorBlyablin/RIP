@@ -11,6 +11,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// @title Turbines API
+// @version 0.2.0
+// @description API для работы с сервисом расчета генерации электроэнергии ветрогенераторами
+// @license.name MIT License
+// @contact.name Егор Бляблин
+// @host localhost:8000
+// @schemes http
+
 func main() {
 	config, err := config.NewConfig()
 	if err != nil {

@@ -32,6 +32,15 @@ func (api *TurbinesApi) RegisterEndpoints(router *gin.RouterGroup) {
 	router.DELETE("/:turbineId", api.DeleteTurbine)
 }
 
+// @Summary Список турбин с фильтрацией
+// @Description Возвращает список активных турбин с возможностью фильтрации по названию
+// @Tags Ветрогенераторы
+// @Accept json
+// @Produce json
+// @Param turbineTitle query string false "Фильтр по названию турбины"
+// @Success 200 {array} ds.Turbine "Список турбин"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/turbines/ [get]
 func (api *TurbinesApi) GetTurbines(ctx *gin.Context) {
 	titleFilter := func() *string {
 		titleFilterValue := ctx.Query("turbineTitle")
@@ -50,6 +59,17 @@ func (api *TurbinesApi) GetTurbines(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, turbines)
 }
 
+// @Summary Получение информации о турбине
+// @Description Возвращает информацию о конкретной турбине по ID
+// @Tags Ветрогенераторы
+// @Accept json
+// @Produce json
+// @Param turbineId path int true "ID турбины"
+// @Success 200 {object} ds.Turbine "Информация о турбине"
+// @Failure 404 {object} map[string]string "Турбина не найдена"
+// @Failure 422 {object} map[string]string "Некорректный ID турбины"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/turbines/{turbineId}/ [get]
 func (api *TurbinesApi) GetTurbine(ctx *gin.Context) {
 	turbineId, err := strconv.Atoi(ctx.Param("turbineId"))
 	if err != nil {
@@ -70,6 +90,16 @@ func (api *TurbinesApi) GetTurbine(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, turbine)
 }
 
+// @Summary Создание новой турбины
+// @Description Создает новую турбину без изображения
+// @Tags Ветрогенераторы
+// @Accept json
+// @Produce json
+// @Param turbine body ds.CreateTurbine true "Данные новой турбины"
+// @Success 201 {object} ds.Turbine "Созданная турбина"
+// @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/turbines/ [post]
 func (api *TurbinesApi) CreateTurbine(ctx *gin.Context) {
 	turbine := ds.CreateTurbine{}
 
@@ -87,6 +117,19 @@ func (api *TurbinesApi) CreateTurbine(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, createdTurbine)
 }
 
+// @Summary Обновление информации о турбине
+// @Description Обновляет информацию о турбине по ID
+// @Tags Ветрогенераторы
+// @Accept json
+// @Produce json
+// @Param turbineId path int true "ID турбины"
+// @Param turbine body ds.UpdateTurbine true "Данные для обновления"
+// @Success 200 {object} ds.Turbine "Обновленная турбина"
+// @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 404 {object} map[string]string "Турбина не найдена"
+// @Failure 422 {object} map[string]string "Некорректный ID турбины"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/turbines/{turbineId}/ [put]
 func (api *TurbinesApi) UpdateTurbine(ctx *gin.Context) {
 	turbine := ds.UpdateTurbine{}
 	if err := ctx.Bind(&turbine); err != nil {
@@ -113,6 +156,19 @@ func (api *TurbinesApi) UpdateTurbine(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, updatedTurbine)
 }
 
+// @Summary Добавление изображения к турбине
+// @Description Добавляет или обновляет изображение для турбины
+// @Tags Ветрогенераторы
+// @Accept multipart/form-data
+// @Produce json
+// @Param turbineId path int true "ID турбины"
+// @Param image formData file true "Файл изображения"
+// @Success 200 {object} ds.Turbine "Обновленная турбина"
+// @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 404 {object} map[string]string "Турбина не найдена"
+// @Failure 422 {object} map[string]string "Некорректный ID турбины"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/turbines/{turbineId}/upload-image/ [post]
 func (api *TurbinesApi) UploadTurbineImage(ctx *gin.Context) {
 	turbineId, err := strconv.Atoi(ctx.Param("turbineId"))
 	if err != nil {
@@ -145,6 +201,17 @@ func (api *TurbinesApi) UploadTurbineImage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, updatedTurbine)
 }
 
+// @Summary Удаление турбины
+// @Description Удаляет турбину по ID
+// @Tags Ветрогенераторы
+// @Accept json
+// @Produce json
+// @Param turbineId path int true "ID турбины"
+// @Success 204 "Турбина успешно удалена"
+// @Failure 404 {object} map[string]string "Турбина не найдена"
+// @Failure 422 {object} map[string]string "Некорректный ID турбины"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/turbines/{turbineId}/ [delete]
 func (api *TurbinesApi) DeleteTurbine(ctx *gin.Context) {
 	turbineId, err := strconv.Atoi(ctx.Param("turbineId"))
 	if err != nil {
