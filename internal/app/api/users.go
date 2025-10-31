@@ -8,6 +8,7 @@ import (
 	"rip/internal/app/middlewares"
 	"rip/internal/app/repositories"
 	"rip/internal/app/services"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +28,7 @@ func (a *UsersApi) RegisterEndpoints(r *gin.RouterGroup, m *middlewares.UserMidd
 	r.GET("/", m.WithAuth, a.GetCurrentUser)
 	r.PUT("/", m.WithAuth, a.UpdateCurrentUser)
 	r.POST("/login", a.Login)
-	r.POST("/logout", a.Logout)
+	r.POST("/logout", m.WithAuth, a.Logout)
 }
 
 // @Summary Регистрация нового пользователя
@@ -169,13 +170,24 @@ func (a *UsersApi) Login(ctx *gin.Context) {
 }
 
 // @Summary Деавторизация пользователя
-// @Description Завершает сессию текущего аутентифицированного пользователя
+// @Description Завершает сессию текущего аутентифицированного пользователя, добавляя JWT в черный список
 // @Tags Пользователи
 // @Accept json
 // @Produce json
 // @Success 200 {object} map[string]string "Сообщение об успешной деавторизации"
+// @Success 200 {object} map[string]string "Сообщение об успешной деавторизации"
 // @Security JWT
 // @Router /api/users/logout/ [post]
 func (a *UsersApi) Logout(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+	jwtStr := ctx.GetHeader("Authorization")
+	if !strings.HasPrefix(jwtStr, middlewares.JwtPrefix) {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	jwtStr = jwtStr[len(middlewares.JwtPrefix):]
+
+	a.s.Deauthorize(ctx, jwtStr)
+
+	ctx.Status(http.StatusOK)
 }

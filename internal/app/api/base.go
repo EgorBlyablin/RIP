@@ -5,6 +5,7 @@ import (
 	"rip/internal/app/config"
 	"rip/internal/app/ds"
 	"rip/internal/app/middlewares"
+	"rip/internal/app/redis"
 	"rip/internal/app/repositories"
 	"rip/internal/app/services"
 
@@ -15,17 +16,19 @@ import (
 type TurbinesAppApi struct {
 	config *config.Config
 	db     *gorm.DB
+	redis  *redis.Client
 }
 
-func NewTurbinesAppApi(config *config.Config, db *gorm.DB) *TurbinesAppApi {
+func NewTurbinesAppApi(config *config.Config, db *gorm.DB, redis *redis.Client) *TurbinesAppApi {
 	return &TurbinesAppApi{
 		config: config,
 		db:     db,
+		redis:  redis,
 	}
 }
 
 func (a *TurbinesAppApi) RegisterEndpoints(router *gin.RouterGroup) {
-	userMiddlewares := middlewares.NewUserMiddlewares(a.config.JWT.Token)
+	userMiddlewares := middlewares.NewUserMiddlewares(a.config.JWT.Token, a.redis)
 
 	generationRequestsService := services.NewGenerationRequestsService(a.db)
 	generationRequestApi := NewGenerationRequestsApi(generationRequestsService)
@@ -40,7 +43,7 @@ func (a *TurbinesAppApi) RegisterEndpoints(router *gin.RouterGroup) {
 	turbinesApi := NewTurbinesApi(turbinesService)
 	turbinesApi.RegisterEndpoints(router.Group("/turbines"), &userMiddlewares)
 
-	usersService := services.NewUsersService(a.db, a.config)
+	usersService := services.NewUsersService(a.db, a.config, a.redis)
 	usersApi := NewUsersApi(usersService)
 	usersApi.RegisterEndpoints(router.Group("/users"), &userMiddlewares)
 }

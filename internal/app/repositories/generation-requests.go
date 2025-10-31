@@ -36,10 +36,14 @@ func NewGenerationRequestRepository(db *gorm.DB) *GenerationRequestRepository {
 	}
 }
 
-func (r *GenerationRequestRepository) GetGenerationRequests(userId uint, filter GenerationRequestsFilter) ([]ds.GenerationRequest, error) {
+func (r *GenerationRequestRepository) GetGenerationRequests(userId *uint, filter GenerationRequestsFilter) ([]ds.GenerationRequest, error) {
 	generationRequests := []ds.GenerationRequest{}
 
-	query := r.GenerationRequestDB.Model(&ds.GenerationRequest{}).Where(ds.GenerationRequest{CreatedByID: userId})
+	query := r.GenerationRequestDB.Model(&ds.GenerationRequest{})
+
+	if userId != nil {
+		query = query.Where(ds.GenerationRequest{CreatedByID: *userId})
+	}
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(filter); err != nil {
@@ -83,12 +87,23 @@ func (r *GenerationRequestRepository) GetGenerationRequest(generationRequestId u
 		return ds.GenerationRequest{}, err
 	}
 
-	if len(*generationRequest.TurbineGenerationRequests) > 0 {
+	counter := uint(0)
+	generationRequest.TurbineGenerationRequestsCount = &counter
+
+	if generationRequest.TurbineGenerationRequests != nil && len(*generationRequest.TurbineGenerationRequests) > 0 {
 		generationSum := uint64(0)
 		for _, turbine := range *generationRequest.TurbineGenerationRequests {
-			generationSum += *turbine.CalculatedGeneration
+			counter += 1
+
+			if turbine.CalculatedGeneration != nil {
+				generationSum += *turbine.CalculatedGeneration
+			} else {
+				log.Debugf("CalculatedGeneration is nil for Turbine ID %d in GenerationRequest ID %d, skipping.", turbine.Turbine.ID, generationRequest.ID)
+				continue
+			}
 		}
 
+		generationRequest.TurbineGenerationRequestsCount = &counter
 		generationRequest.CalculatedGenerationSum = &generationSum
 	}
 	return generationRequest, nil
@@ -197,6 +212,9 @@ func (r *GenerationRequestRepository) CompleteGenerationRequest(generationReques
 		return ds.GenerationRequest{}, nil
 	}
 	if generationRequest.Status != "sent" {
+		return ds.GenerationRequest{}, ErrorGenerationRequestCannotBeClosed
+	}
+	if generationRequest.PeriodDays == nil {
 		return ds.GenerationRequest{}, ErrorGenerationRequestCannotBeClosed
 	}
 

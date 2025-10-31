@@ -10,3 +10,7 @@ Port = 9000
 Token = "turbines-secret-token"
 SigningMethod = "HS256"
 ExpiresIn = "24h"
+
+[Redis]
+DialTimeout = "10s"
+ReadTimeout = "10s"

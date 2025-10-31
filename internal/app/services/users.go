@@ -1,10 +1,12 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"rip/internal/app/config"
 	"rip/internal/app/ds"
+	"rip/internal/app/redis"
 	"rip/internal/app/repositories"
 	"time"
 
@@ -14,17 +16,17 @@ import (
 )
 
 var (
-	ErrorUserHasNoAccess          = errors.New("user has no access")
 	ErrorUserCredentialsIncorrect = errors.New("user credentials are incorrect")
 )
 
 type UsersService struct {
 	r                *repositories.UsersRepository
 	Config           *config.Config
+	Redis            *redis.Client
 	JWTSigningMethod jwt.SigningMethod
 }
 
-func NewUsersService(db *gorm.DB, config *config.Config) *UsersService {
+func NewUsersService(db *gorm.DB, config *config.Config, redis *redis.Client) *UsersService {
 	var jwtMethod jwt.SigningMethod
 	switch config.JWT.SigningMethod {
 	case "HS256":
@@ -40,6 +42,7 @@ func NewUsersService(db *gorm.DB, config *config.Config) *UsersService {
 	return &UsersService{
 		r:                repositories.NewUsersRepository(db),
 		Config:           config,
+		Redis:            redis,
 		JWTSigningMethod: jwtMethod,
 	}
 }
@@ -56,14 +59,6 @@ func (s *UsersService) UpdateUser(userId uint, user ds.UpdateUser) (ds.User, err
 	return s.r.UpdateUser(userId, user)
 }
 
-func (s *UsersService) CheckIsModerator(userId uint) (bool, error) {
-	user, err := s.r.GetUserByID(userId)
-	if err != nil {
-		return false, err
-	}
-	return user.IsModerator, nil
-}
-
 func (s *UsersService) Authorize(login string, password string) (string, error) {
 	user, err := s.r.GetUserByLogin(login)
 	if err != nil {
@@ -77,7 +72,8 @@ func (s *UsersService) Authorize(login string, password string) (string, error) 
 				IssuedAt:  time.Now().Unix(),
 				Issuer:    "turbines-backend",
 			},
-			UserID: user.ID,
+			UserID:      user.ID,
+			IsModerator: user.IsModerator,
 		})
 		if token == nil {
 			return "", fmt.Errorf("failed to create token")
@@ -92,4 +88,20 @@ func (s *UsersService) Authorize(login string, password string) (string, error) 
 	}
 
 	return "", ErrorUserCredentialsIncorrect
+}
+
+func (s *UsersService) Deauthorize(ctx context.Context, jwtString string) error {
+	_, err := jwt.ParseWithClaims(jwtString, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(s.Config.JWT.Token), nil
+	})
+	if err != nil {
+		return err
+	}
+
+	err = s.Redis.WriteJWTToBlacklist(ctx, jwtString, s.Config.JWT.ExpiresIn)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

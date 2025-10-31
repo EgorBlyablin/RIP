@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"rip/internal/app/config"
 	"rip/internal/app/dsn"
+	"rip/internal/app/redis"
 	"rip/internal/app/repositories"
 	"rip/internal/pkg"
 
@@ -31,11 +33,17 @@ func main() {
 	postgresDsn := dsn.FromEnv()
 	fmt.Println(postgresDsn)
 
-	db, errRep := repositories.NewTurbinesDB(postgresDsn)
-	if errRep != nil {
-		logrus.Fatalf("error initializing repository: %v", errRep)
+	db, err := repositories.NewTurbinesDB(postgresDsn)
+	if err != nil {
+		logrus.Fatalf("error initializing repository: %v", err)
+	}
+
+	ctx := context.Background()
+	redisClient, err := redis.New(ctx, config.Redis)
+	if err != nil {
+		logrus.Fatalf("error initializing redis: %v", err)
 	}
 
 	app := &pkg.TurbinesApplication{}
-	app.Run(config, db)
+	app.Run(config, db, redisClient)
 }

@@ -45,6 +45,8 @@ func (a *GenerationRequestsApi) RegisterEndpoints(r *gin.RouterGroup, m *middlew
 // @Param filter path repositories.GenerationRequestsFilter false "Фильтр заявок"
 // @Success 200 {array} ds.GenerationRequest "Список заявок"
 // @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 401 {object} map[string]string "Пользователь не авторизован"
+// @Failure 403 {object} map[string]string "Доступ запрещен"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security JWT
 // @Router /api/generation-requests/ [get]
@@ -66,7 +68,16 @@ func (a *GenerationRequestsApi) GetSentGenerationRequests(ctx *gin.Context) {
 		return
 	}
 
-	generationRequests, err := a.s.GetGenerationRequests(userId, generationRequestsFilter)
+	userIsModeratorStr, found := ctx.Get(ds.UserIsModeratorKey)
+	userFilter := &userId
+
+	if found {
+		if userIsModeratorStr.(bool) {
+			userFilter = nil
+		}
+	}
+
+	generationRequests, err := a.s.GetGenerationRequests(userFilter, generationRequestsFilter)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -88,6 +99,7 @@ func (a *GenerationRequestsApi) GetSentGenerationRequests(ctx *gin.Context) {
 // @Produce json
 // @Param generationRequestId path int true "ID заявки"
 // @Success 200 {object} ds.GenerationRequest "Информация о заявке"
+// @Failure 401 {object} map[string]string "Пользователь не авторизован"
 // @Failure 403 {object} map[string]string "Доступ запрещен"
 // @Failure 404 {object} map[string]string "Заявка не найдена"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
@@ -136,6 +148,7 @@ func (a *GenerationRequestsApi) GetGenerationRequest(ctx *gin.Context) {
 // @Param request body api.CloseGenerationRequest.req true "Статус: completed или rejected"
 // @Success 200 {object} ds.GenerationRequest "Обновленная заявка"
 // @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 401 {object} map[string]string "Пользователь не авторизован"
 // @Failure 403 {object} map[string]string "Доступ запрещен"
 // @Failure 404 {object} map[string]string "Заявка не найдена"
 // @Failure 409 {object} map[string]string "Заявка не может быть закрыта"
@@ -143,7 +156,7 @@ func (a *GenerationRequestsApi) GetGenerationRequest(ctx *gin.Context) {
 // @Security JWT
 // @Router /api/generation-requests/{generationRequestId}/close/ [put]
 func (a *GenerationRequestsApi) CloseGenerationRequest(ctx *gin.Context) {
-	userId, err := GetUserID(ctx)
+	moderatorId, err := GetUserID(ctx)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
@@ -164,14 +177,11 @@ func (a *GenerationRequestsApi) CloseGenerationRequest(ctx *gin.Context) {
 		return
 	}
 
-	closedGenerationRequest, err := a.s.CloseGenerationRequest(uint(generationRequestsId), userId, closeGenerationRequest.Status)
+	closedGenerationRequest, err := a.s.CloseGenerationRequest(uint(generationRequestsId), moderatorId, closeGenerationRequest.Status)
 	if err != nil {
 		switch err {
 		case services.ErrorGenerationRequestIncorrectStatus:
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-			return
-		case services.ErrorUserHasNoAccess:
-			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": err.Error()})
 			return
 		case repositories.ErrorGenerationRequestNotFound:
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})
@@ -192,6 +202,7 @@ func (a *GenerationRequestsApi) CloseGenerationRequest(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} ds.GenerationRequest "Информация о черновике"
+// @Failure 401 {object} map[string]string "Пользователь не авторизован"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security JWT
 // @Router /api/generation-requests/draft/ [get]
@@ -225,7 +236,7 @@ func (a *GenerationRequestsApi) GetDraftBriefInfo(ctx *gin.Context) {
 // @Param request body ds.UpdateGenerationRequest true "Данные для обновления"
 // @Success 200 {object} ds.GenerationRequest "Обновленный черновик"
 // @Failure 400 {object} map[string]string "Некорректный запрос"
-// @Failure 403 {object} map[string]string "Доступ запрещен"
+// @Failure 401 {object} map[string]string "Пользователь не авторизован"
 // @Failure 404 {object} map[string]string "Черновик не найден"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security JWT
@@ -245,10 +256,6 @@ func (a *GenerationRequestsApi) UpdateDraftGenerationRequest(ctx *gin.Context) {
 
 	updatedGenerationRequest, err := a.s.UpdateDraftGenerationRequest(userId, generationRequestUpdates)
 	if err != nil {
-		if errors.Is(err, services.ErrorUserHasNoAccess) {
-			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": err.Error()})
-			return
-		}
 		if errors.Is(err, repositories.ErrorGenerationRequestNotFound) {
 			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 			return
@@ -267,8 +274,9 @@ func (a *GenerationRequestsApi) UpdateDraftGenerationRequest(ctx *gin.Context) {
 // @Produce json
 // @Param turbineId path int true "ID турбины"
 // @Success 200 {object} map[string]string "Турбина добавлена"
-// @Failure 400 {object} map[string]string "Некорректный запрос"
 // @Failure 304 {object} map[string]string "Турбина уже в черновике"
+// @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 401 {object} map[string]string "Пользователь не авторизован"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security JWT
 // @Router /api/generation-requests/draft/{turbineId}/ [post]
@@ -307,6 +315,7 @@ func (a *GenerationRequestsApi) AddTurbineToDraft(ctx *gin.Context) {
 // @Param updates body ds.UpdateTurbineGenerationRequest true "Параметры для обновления"
 // @Success 200 {object} map[string]string "Параметры обновлены"
 // @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 401 {object} map[string]string "Пользователь не авторизован"
 // @Failure 404 {object} map[string]string "Турбина не найдена в черновике"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security JWT
@@ -351,6 +360,7 @@ func (a *GenerationRequestsApi) UpdateTurbineInDraft(ctx *gin.Context) {
 // @Param turbineId path int true "ID турбины"
 // @Success 200 {object} map[string]string "Турбина удалена"
 // @Failure 400 {object} map[string]string "Некорректный запрос"
+// @Failure 401 {object} map[string]string "Пользователь не авторизован"
 // @Failure 404 {object} map[string]string "Турбина или черновик не найден"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security JWT
@@ -391,6 +401,7 @@ func (a *GenerationRequestsApi) RemoveTurbineFromDraft(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} map[string]string "Черновик отправлен"
+// @Failure 401 {object} map[string]string "Пользователь не авторизован"
 // @Failure 404 {object} map[string]string "Черновик не найден"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
 // @Security JWT

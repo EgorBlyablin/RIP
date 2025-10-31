@@ -75,6 +75,24 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещен",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "500": {
                         "description": "Внутренняя ошибка сервера",
                         "schema": {
@@ -110,6 +128,15 @@
                         "description": "Информация о черновике",
                         "schema": {
                             "$ref": "#/definitions/ds.GenerationRequest"
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "500": {
@@ -167,8 +194,8 @@
                             }
                         }
                     },
-                    "403": {
-                        "description": "Доступ запрещен",
+                    "401": {
+                        "description": "Пользователь не авторизован",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -266,6 +293,15 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Черновик не найден",
                         "schema": {
@@ -335,6 +371,15 @@
                     },
                     "400": {
                         "description": "Некорректный запрос",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -416,6 +461,15 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "500": {
                         "description": "Внутренняя ошибка сервера",
                         "schema": {
@@ -465,6 +519,15 @@
                     },
                     "400": {
                         "description": "Некорректный запрос",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -525,6 +588,15 @@
                         "description": "Информация о заявке",
                         "schema": {
                             "$ref": "#/definitions/ds.GenerationRequest"
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "403": {
@@ -602,6 +674,15 @@
                     },
                     "400": {
                         "description": "Некорректный запрос",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1225,7 +1306,7 @@
                         "JWT": []
                     }
                 ],
-                "description": "Завершает сессию текущего аутентифицированного пользователя",
+                "description": "Завершает сессию текущего аутентифицированного пользователя, добавляя JWT в черный список",
                 "consumes": [
                     "application/json"
                 ],

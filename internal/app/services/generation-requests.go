@@ -46,7 +46,7 @@ func NewGenerationRequestsService(db *gorm.DB) *GenerationRequestsService {
 	}
 }
 
-func (s *GenerationRequestsService) GetGenerationRequests(userId uint, filter repositories.GenerationRequestsFilter) ([]ds.GenerationRequest, error) {
+func (s *GenerationRequestsService) GetGenerationRequests(userId *uint, filter repositories.GenerationRequestsFilter) ([]ds.GenerationRequest, error) {
 	return s.r.GetGenerationRequests(userId, filter)
 }
 

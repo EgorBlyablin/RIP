@@ -5,6 +5,7 @@ import (
 
 	"rip/internal/app/api"
 	"rip/internal/app/config"
+	"rip/internal/app/redis"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -17,13 +18,13 @@ import (
 
 type TurbinesApplication struct{}
 
-func (a *TurbinesApplication) Run(config *config.Config, db *gorm.DB) {
+func (a *TurbinesApplication) Run(config *config.Config, db *gorm.DB, redis *redis.Client) {
 	logrus.Info("Server start up")
 
 	engine := gin.Default()
 	router := engine.Group("/api")
 
-	turbinesApi := api.NewTurbinesAppApi(config, db)
+	turbinesApi := api.NewTurbinesAppApi(config, db, redis)
 	turbinesApi.RegisterEndpoints(router)
 
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

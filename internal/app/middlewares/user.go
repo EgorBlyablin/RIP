@@ -3,32 +3,41 @@ package middlewares
 import (
 	"net/http"
 	"rip/internal/app/ds"
+	"rip/internal/app/redis"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	log "github.com/sirupsen/logrus"
 )
 
-const jwtPrefix = "Bearer "
+const JwtPrefix = "Bearer "
 
 type UserMiddlewares struct {
 	Token string
+	redis *redis.Client
 }
 
-func NewUserMiddlewares(token string) UserMiddlewares {
+func NewUserMiddlewares(token string, redis *redis.Client) UserMiddlewares {
 	return UserMiddlewares{
 		Token: token,
+		redis: redis,
 	}
 }
 
 func (u *UserMiddlewares) WithAuth(ctx *gin.Context) {
 	jwtStr := ctx.GetHeader("Authorization")
-	if !strings.HasPrefix(jwtStr, jwtPrefix) {
+	if !strings.HasPrefix(jwtStr, JwtPrefix) {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	jwtStr = jwtStr[len(jwtPrefix):]
+	jwtStr = jwtStr[len(JwtPrefix):]
+
+	if u.redis.CheckJWTInBlacklist(ctx, jwtStr) != nil {
+		ctx.AbortWithStatus(http.StatusForbidden)
+		return
+	}
 
 	jwt, err := jwt.ParseWithClaims(jwtStr, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(u.Token), nil
@@ -40,17 +49,24 @@ func (u *UserMiddlewares) WithAuth(ctx *gin.Context) {
 
 	jwtData := jwt.Claims.(*ds.JWTClaims)
 	ctx.Set(ds.UserIDKey, jwtData.UserID)
+	ctx.Set(ds.UserIsModeratorKey, jwtData.IsModerator)
 	ctx.Next()
 }
 
 func (u *UserMiddlewares) WithModeratorAccess(ctx *gin.Context) {
 	jwtStr := ctx.GetHeader("Authorization")
-	if !strings.HasPrefix(jwtStr, jwtPrefix) {
+	if !strings.HasPrefix(jwtStr, JwtPrefix) {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	jwtStr = jwtStr[len(jwtPrefix):]
+	jwtStr = jwtStr[len(JwtPrefix):]
+
+	if u.redis.CheckJWTInBlacklist(ctx, jwtStr) != nil {
+		log.WithField("jwtStr", jwtStr).Info("Found JWT in blacklist")
+		ctx.AbortWithStatus(http.StatusForbidden)
+		return
+	}
 
 	jwt, _ := jwt.ParseWithClaims(jwtStr, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(u.Token), nil

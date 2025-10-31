@@ -79,6 +79,24 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещен",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "500": {
                         "description": "Внутренняя ошибка сервера",
                         "schema": {
@@ -114,6 +132,15 @@ const docTemplate = `{
                         "description": "Информация о черновике",
                         "schema": {
                             "$ref": "#/definitions/ds.GenerationRequest"
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "500": {
@@ -171,8 +198,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "403": {
-                        "description": "Доступ запрещен",
+                    "401": {
+                        "description": "Пользователь не авторизован",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -270,6 +297,15 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Черновик не найден",
                         "schema": {
@@ -339,6 +375,15 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Некорректный запрос",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -420,6 +465,15 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "500": {
                         "description": "Внутренняя ошибка сервера",
                         "schema": {
@@ -469,6 +523,15 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Некорректный запрос",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -529,6 +592,15 @@ const docTemplate = `{
                         "description": "Информация о заявке",
                         "schema": {
                             "$ref": "#/definitions/ds.GenerationRequest"
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "403": {
@@ -606,6 +678,15 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Некорректный запрос",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1229,7 +1310,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Завершает сессию текущего аутентифицированного пользователя",
+                "description": "Завершает сессию текущего аутентифицированного пользователя, добавляя JWT в черный список",
                 "consumes": [
                     "application/json"
                 ],
