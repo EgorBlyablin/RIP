@@ -1,6 +1,5 @@
 import { useEffect, useState, type FC, type FormEvent } from "react";
 import { Button, Col, Container, Form, InputGroup, Row } from "react-bootstrap";
-import { useSearchParams } from "react-router";
 import { fetchTurbines } from "../api/turbines";
 import SearchIcon from "../assets/search.svg?react";
 import { Breadcrumbs } from "../components/breadcrumbs";
@@ -10,38 +9,29 @@ import type { Turbine } from "../api/interfaces";
 import { fetchRequestStats } from "../api/generation-requests";
 
 export const TurbinesListPage: FC = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
-
-    // Get initial search query from URL
-    const titleFilter = searchParams.get("title-filter") || "";
-    const [searchValue, setSearchValue] = useState(titleFilter);
+    const [turbinesSearchValue, setTurbinesSearchValue] = useState("");
     const [turbines, setTurbines] = useState<Turbine[]>([]);
-    const [cartCount, setCartCount] = useState(0);
+    const [turbinesCartCount, setTurbinesCartCount] = useState(0);
 
     useEffect(() => {
-        fetchRequestStats().then(stats => stats && setCartCount(stats.TurbinesCount));
+        fetchRequestStats().then(stats => stats && setTurbinesCartCount(stats.TurbinesCount));
     }, []);
 
     useEffect(() => {
         const fetchTurbinesWrapper = async () => {
-            const turbinesData = await fetchTurbines(titleFilter);
+            const turbinesData = await fetchTurbines(turbinesSearchValue);
             setTurbines(turbinesData || []);
         };
 
         fetchTurbinesWrapper();
-    }, [titleFilter]);
+    }, [turbinesSearchValue]);
 
     // Handle form submission for search
     const handleSearchSubmit = (e: FormEvent) => {
         e.preventDefault();
 
-        const params = new URLSearchParams(searchParams);
-        if (searchValue.trim()) {
-            params.set("title-filter", searchValue.trim());
-        } else {
-            params.delete("title-filter");
-        }
-        setSearchParams(params);
+        const inputField = document.getElementById("titleFilterValue") as HTMLInputElement;
+        setTurbinesSearchValue(inputField.value);
     };
 
     return (
@@ -68,7 +58,7 @@ export const TurbinesListPage: FC = () => {
                     }}
                 >
                     Ветрогенераторы
-                    {titleFilter && <> (поиск: "{titleFilter}")</>} {/* Use titleFilter here too */}
+                    {turbinesSearchValue && <> (поиск: "{turbinesSearchValue}")</>} {/* Use titleFilter here too */}
                 </h1>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                     <Button
@@ -84,15 +74,15 @@ export const TurbinesListPage: FC = () => {
                             padding: "0.05rem 0.5rem",
                             lineHeight: 1,
                             fontSize: "0.7rem",
-                        }}>{cartCount}</span>
+                        }}>{turbinesCartCount}</span>
                     </Button>
                     <Form onSubmit={handleSearchSubmit}>
                         <InputGroup>
                             <Form.Control
                                 name="title-filter"
+                                id="titleFilterValue"
                                 placeholder="Поиск"
-                                value={searchValue}
-                                onChange={({ currentTarget: { value } }) => setSearchValue(value)}
+                                defaultValue={turbinesSearchValue}
                                 maxLength={20}
                             />
                             <Button type="submit" style={{ display: "flex", alignItems: "center", backgroundColor: "#5BA1D4", border: "none" }}>
