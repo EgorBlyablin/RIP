@@ -8,7 +8,7 @@ import mkcert from 'vite-plugin-mkcert';
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/RIP/',
+  base: '/rip-frontend/',
   server: {
     host: "0.0.0.0",
     port: 3000,
@@ -36,18 +36,18 @@ export default defineConfig({
       manifest: {
         "name": "VETRYAKI",
         "short_name": "VETRYAKI",
-        "start_url": "/RIP/",
+        "start_url": "/rip-frontend/",
         "display": "standalone",
         "background_color": "#ffffff",
         "theme_color": "#ffffff",
         "orientation": "portrait-primary",
         "icons": [
           {
-            "src": "/RIP/logo128.png",
+            "src": "/rip-frontend/logo128.png",
             "type": "image/png", "sizes": "128x128"
           },
           {
-            "src": "/RIP/logo512.png",
+            "src": "/rip-frontend/logo512.png",
             "type": "image/png", "sizes": "512x512"
           }
         ]
