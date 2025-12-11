@@ -21,7 +21,7 @@ export const GenerationRequestPage = () => {
 
     useEffect(() => {
         generationRequestId && dispatch(getGenerationRequest(Number(generationRequestId)));
-    }, [generationRequestId]);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

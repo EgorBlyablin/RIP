@@ -181,7 +181,7 @@ export const TurbineGenerationRequestCard: FC<{
                     }}
                 >
                     <span style={{ fontSize: 24, fontWeight: 600 }}>
-                        {turbine.calculated_generation && formatGeneration(turbine.calculated_generation)}
+                        {turbine.calculated_generation ? formatGeneration(turbine.calculated_generation) : "н/д"}
                     </span>
                     <div
                         style={{

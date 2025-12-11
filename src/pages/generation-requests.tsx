@@ -17,7 +17,11 @@ export const GenerationRequestsPage = () => {
     const { isEngineer } = useSelector(state => state.user);
 
     useEffect(() => {
+        const updateTimer = setInterval(() => dispatch(getGenerationRequests()), 10000)
+
         dispatch(getGenerationRequests());
+
+        return () => clearInterval(updateTimer)
     }, [status, formedAtBegin, formedAtEnd]);
 
     return (<Container>
@@ -85,7 +89,7 @@ export const GenerationRequestsPage = () => {
                                 <th>Обработал</th>
                             </>
                             }
-                            <th>Турбин</th>
+                            <th>Рассчитано</th>
                         </tr>
                     </thead>
                     <tbody>
