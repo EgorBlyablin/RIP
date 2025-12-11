@@ -8,7 +8,6 @@ import mkcert from 'vite-plugin-mkcert';
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/rip-frontend/',
   server: {
     host: "0.0.0.0",
     port: 3000,

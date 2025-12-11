@@ -1,6 +1,6 @@
-import type { Turbine } from "./interfaces";
+import type { DsTurbine } from "./Api";
 
-export const turbinesMock: Turbine[] = [
+export const turbinesMock: DsTurbine[] = [
     {
         id: 1,
         title: "АТОН ВС-1",
