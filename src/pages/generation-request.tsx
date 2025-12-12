@@ -72,11 +72,14 @@ export const GenerationRequestPage = () => {
                             />
                             : <strong>{generationRequestData.period_days}</strong>
                         }
-                        {(periodDaysEntered !== generationRequestData.period_days && !!periodDaysEntered) &&
-                            <Button variant="primary" style={{ marginLeft: 10, background: "#5BA1D4", borderColor: "#5BA1D4" }} onClick={() => dispatch(setGenerationRequestData(periodDaysEntered))}>
-                                Сохранить
-                            </Button>
-                        }
+                        <Button
+                            variant="primary"
+                            style={{ marginLeft: 10, background: "#5BA1D4", borderColor: "#5BA1D4" }}
+                            onClick={() => dispatch(setGenerationRequestData(periodDaysEntered))}
+                            disabled={!(periodDaysEntered !== generationRequestData.period_days && !!periodDaysEntered)}
+                        >
+                            Сохранить
+                        </Button>
                     </div>
                     <div style={{ display: "flex", gap: 10 }}>
                         {(isDraft) && (

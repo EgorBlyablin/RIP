@@ -13,6 +13,8 @@ interface GenerationRequestsState {
 }
 
 const initialState: GenerationRequestsState = {
+    formedAtBegin: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+
     generationRequests: [{}],
     error: null,
     loading: false,

@@ -197,10 +197,12 @@ export const TurbineGenerationRequestCard: FC<{
                     >
                         {editable && <>
                             <Button variant="danger" size="sm" onClick={onDelete} style={{ borderRadius: 1000, fontSize: 20, lineHeight: 1, padding: "6px 8px" }}>⨯</Button>
-                            {(isChanged && !!avgWind && !!alpha) && <Button size="sm" type="submit" onClick={(e) => {
+                            <Button size="sm" type="submit" onClick={(e) => {
                                 e.preventDefault();
                                 onSubmit(avgWind, alpha)
-                            }} style={{ borderRadius: 1000, fontSize: 20, lineHeight: 1, padding: "6px 8px", background: "#5BA1D4", borderColor: "#5BA1D4" }}>🖫</Button>}
+                            }} style={{ borderRadius: 1000, fontSize: 20, lineHeight: 1, padding: "6px 8px", background: "#5BA1D4", borderColor: "#5BA1D4" }}
+                            disabled={!(isChanged && !!avgWind && !!alpha)}
+                            >🖫</Button>
                         </>
                         }
                     </div>
