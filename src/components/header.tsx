@@ -46,7 +46,7 @@ export const Header: FC<{ mode?: "normal" | "main-page" }> = ({ mode = "normal" 
                                 </div>
                             }
                             <NavLink to={ROUTES.TURBINES_LIST} style={{ color: mode === "normal" ? "black" : "white", textDecoration: "none" }}>{ROUTE_LABELS.TURBINES_LIST}</NavLink>
-                            <NavLink to={ROUTES.GENERATION_REQUESTS} style={{ color: mode === "normal" ? "black" : "white", textDecoration: "none" }}>{ROUTE_LABELS.GENERATION_REQUESTS}</NavLink>
+                            {isAuthenticated && <NavLink to={ROUTES.GENERATION_REQUESTS} style={{ color: mode === "normal" ? "black" : "white", textDecoration: "none" }}>{ROUTE_LABELS.GENERATION_REQUESTS}</NavLink>}
                             <NavLink to={ROUTES.HOME} style={{
                                 padding: "12px 30px",
                                 color: "white",

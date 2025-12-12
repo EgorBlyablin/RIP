@@ -19,36 +19,6 @@ const initialState: UserState = {
 };
 
 
-export const checkAuthThunk = createAsyncThunk(
-  'user/checkAuth',
-  async (_, { dispatch, rejectWithValue }) => {
-    if (localStorage.getItem("access_token") === null) {
-      return rejectWithValue("")
-    }
-
-    try {
-      const response = await api.usersList();
-
-      const draftInfo = await api.generationRequestsDraftList();
-
-      dispatch(setGenerationRequestId(draftInfo.data.generationRequestId));
-      dispatch(setTurbinesCount(draftInfo.data.turbinesCount));
-
-      const userDetails = await api.usersList();
-      dispatch(setIsEngineer(userDetails.data.is_moderator || false))
-
-      return response.data;
-    } catch (error: any) {
-      if (error.status === 404) {
-        localStorage.removeItem('access_token');
-        return rejectWithValue("Требуется повторный вход")
-      } else {
-        throw error
-      }
-    }
-  }
-);
-
 // Асинхронное действие для деавторизации
 export const logoutThunk = createAsyncThunk(
   'user/logout',
@@ -93,16 +63,6 @@ const userSlice = createSlice({
       .addCase(loginThunk.rejected, (state, action) => {
         state.error = action.payload as string;
         state.isAuthenticated = false;
-      })
-
-      .addCase(checkAuthThunk.fulfilled, (state, action) => {
-        state.username = action.payload.login || '';
-        state.isAuthenticated = true;
-        state.error = null;
-      })
-      .addCase(checkAuthThunk.rejected, (state, action) => {
-        state.isAuthenticated = false;
-        state.error = action.payload as string;
       })
 
       .addCase(logoutThunk.fulfilled, (state) => {

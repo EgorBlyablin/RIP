@@ -9,20 +9,12 @@ import { MainPage } from './pages/main'
 import { TurbineDetailsPage } from './pages/turbine-details'
 import { TurbinesListPage } from './pages/turbines-list'
 import { ROUTES } from './routes'
-import { checkAuthThunk } from './slices/user'
-import { useDispatch } from './store'
 import { ProfilePage } from './pages/profile'
 import { RegistrationPage } from './pages/registration'
 import { GenerationRequestsPage } from './pages/generation-requests'
 
 
 export const App = () => {
-    const dispatch = useDispatch();
-
-    useEffect(() => {
-        dispatch(checkAuthThunk());
-    }, []);
-
     return (
         <BrowserRouter>
             <Routes>
